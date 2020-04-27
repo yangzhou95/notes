@@ -1,3 +1,1 @@
-This is an apple file
-amend apple2
-test reset to unstage
+This is an apple file, append in dev
