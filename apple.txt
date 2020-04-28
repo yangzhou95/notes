@@ -4,3 +4,4 @@ hello git
 test soft
 test mix
 test diff: modify working dir
+test checkout on single file
