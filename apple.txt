@@ -1,5 +1,5 @@
-1.modify apple at master
-2.modify apple at master
+2.modify apple at master, edit in
 hello git
 test soft
 test mix
+test diff: modify working dir
