@@ -1,4 +1,4 @@
-1.modify apple at master
+1.modify apple at master, edit in master
 2.modify apple at master
 hello git
 test soft
