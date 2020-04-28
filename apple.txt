@@ -1,3 +1,5 @@
 1.modify apple at master
 2.modify apple at master
 hello git
+test soft
+test mix
