@@ -2,7 +2,6 @@
 2.modify apple at master
 hello git
 test soft
-test mix
 test diff: modify working dir
 test checkout on single file
 update in master
