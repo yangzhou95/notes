@@ -1,5 +1,7 @@
 modified on the new_branch
 this is the second line
+<<<<<<< HEAD
 this is the new feature in new_branch
 test amend
-test revert
+=======
+>>>>>>> parent of 314cbad... update the text.txt on new_branch
