@@ -1,5 +1,0 @@
-modified on the new_branch
-this is the second line
-this is the new feature in new_branch
-test amend
-edit in master 
