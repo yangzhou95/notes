@@ -1,5 +1,0 @@
-This is a test file, for command line practicing
-add a line 
-add another line
-add the third line, but add file to working dir
-add fourth line, didn't add

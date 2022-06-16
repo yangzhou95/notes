@@ -1,7 +1,0 @@
-1.modify apple at master, edit in master
-2.modify apple at master
-hello git
-test soft
-test diff: modify working dir
-test checkout on single file
-update in master
