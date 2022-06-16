@@ -1,0 +1,257 @@
+* Python Cookbook
+** Chapter 10
+*** `_init__.py` files is to include optional initialization code that runs as different levels of a package are encountered.
+*** when import a module (dir with `__init__.py`) or any element in a module, the system will import the `__init__.py` first
+*** If you don’t define __init__.py, you actually create what’s known as a “namespace package”
+#+begin_src python
+# graphics/
+#             __init__.py
+#             primitive/
+#                  __init__.py
+#                  line.py
+#                  fill.py
+#                  text.py
+#             formats/
+#                  __init__.py
+#                  png.py
+#                  jpg.py
+
+import such as import graphics.for mats.jpg
+# the files graphics/__init__.py and graphics/formats/__init__.py will both be
+# imported prior to the final import of the graphics/formats/jpg.py file.
+
+##### usage of __init__.py
+# graphics/formats/__init__.py
+from . import jpg
+from . import png
+
+#+end_src
+
+*** usages of `__init__.py`
+**** an `__init__.py file can be used to automatically load submodules
+****  `__init__.py include consolidating definitions from multiple files into a single logical namespace, as is sometimes done when splitting modules.
+*** control over the symbols that are exported from a module or package when a user uses the "from module import * *" statement.* 
+**** Define a variable `__all__ in your module (`__init__.py`) that explicitly lists the exported names
+**** If you don’t do anything, this form of import will export all names that don’t start with an underscore. 
+**** If you define `__all__ as an empty list, then nothing will be exported. An AttributeError is raised on import if `__all__` contains undefined names.
+*** imports involving modules in the same package
+****  imports involving modules in the same package can either use fully specified absolute names or a relative imports using the syntax shown.
+#+begin_src python
+# mypackage/
+#             __init__.py
+#             A/
+#                 __init__.py
+#                 spam.py
+#                 grok.py 
+#             B/
+#                 __init__.py
+#                 bar.py
+
+
+# mypackage/A/spam.py
+# The downside of using an absolute name, such as mypackage.A, 
+# is that it hardcodes the top-level package name into your source code.
+from mypackage.A import grok # ok, but make your code brittle and difficult to move your code around
+from . import grok # ok
+import grok # error (not found)
+# OK
+# OK
+# Error (not found)
+#+end_src
+*** the syntax of `.module_a` and `..module_b` only works with the from form of import. 
+#+begin_src python
+from . import grok # OK 
+import .grok # ERROR
+#+end_src
+**** Although it looks like you could navigate the filesystem using a relative import, they are not allowed to escape the directory in which a package is defined. 
+**** That is, combinations of dotted name patterns that would cause an import to occur from a non-package directory cause an error
+*** cases relatively import does not work
+**** relative imports only work for modules that are located inside a proper package. 
+**** they do not work inside simple modules located at the top level of scripts.
+**** they also won’t work if parts of a package are executed directly as a script
+#+begin_src python
+% python3 mypackage/A/spam.py      # Relative imports fail, it does not work if parts of a package are executed as a script
+% python3 -m mypackage.A.spam      # Relative imports work
+#+end_src
+*** Splitting a Module into Multiple Files
+
+#+begin_src python
+# original module
+# mymodule.py
+class A:
+    def spam(self):
+        print('A.spam')
+class B(A):
+    def bar(self):
+        print('B.bar')
+
+# mymodule/
+#             __init__.py
+#             a.py 
+#             b.py
+
+# In the a.py file, put this code: # a.py
+class A:
+    def spam(self):
+        print('A.spam') In the b.py file, put this code:
+# b.py
+from .a import A
+class B(A):
+     def bar(self):
+         print('B.bar')
+
+# Finally, in the __init__.py file, glue the two files together:
+# __init__.py
+from .a import A from .b import B
+#+end_src
+**** The key to doing this is to create a package directory and to use the __init__.py file to glue the parts together.
+**** this recipe shows how to stitch multiple files together into a single logical namespace.
+*** Lazy 
+#+begin_src python
+# __init__.py
+def A():
+    from .a import A
+    return A()
+def B():
+    from .b import B
+    return B()
+
+>>> import mymodule 
+>>> a = mymodule.A()
+ >>> a.spam()
+
+# The main downside of lazy loading is that inheritance and type checking might break.
+if isinstance(x, mymodule.A): # Error ...
+if isinstance(x, mymodule.a.A): # OK 
+#+end_src
+***  define a top-level Python package that serves as a namespace for a large collection of separately maintained subpackages.
+**** To unify separate directories under a common namespace, you organize the code just like a normal Python package,
+**** but you omit __init__.py files in the directories where the components are going to join together.
+#+begin_src python
+# foo-package/
+#             spam/
+#                  blah.py
+# bar-package/
+#             spam/
+#                 grok.py
+
+# Now watch what happens if you add both foo-package and bar-package to the Python
+# module path and try some imports:
+
+import sys
+sys.path.extend(['foo-package', 'bar-package'])
+import spam.blah
+import spam.grok
+# You’ll observe that, by magic, the two different package directories merge together and you can import either spam.blah or spam.grok.
+#+end_src
+**** The mechanism at work here is a feature known as a “namespace package.” 
+**** a namespace package is a special kind of package designed for merging different directories of code together under a common namespace.
+**** The directories on `__path__ are used when locating further package subcomponents
+#+begin_src python
+# my-package/
+#              spam/
+#                   custom.py
+# If you added your directory of code to sys.path along with the other packages, it would
+# just seamlessly merge together with the other spam package directories:
+import spam.custom
+import spam.grok
+import spam.blah
+
+# As a debugging tool, the main way that you can tell if a package is serving as a namespace 
+# package is to check its __file__ attribute. If it’s missing altogether, the package is a namespace
+>>> spam.__file__ ---> error: 'module' object has no attribute '__file__'
+>>> spam --> <module 'spam' (namespace)>
+#+end_src
+**** How to reload a module? (why you need to reload a module: maybe you've change the source code)
+#+begin_src python
+# to reload a previously loaded module, use imp.reload(). 
+>>> import spam
+>>> import imp
+>>> imp.reload(spam)
+#+end_src
+***** the reload() operation wipes out the contents of a module’s under‐ lying dictionary and refreshes it by re-executing the module’s source code.
+***** reload() does not update definitions that have been imported using state‐ ments such as from module import name
+***** Notes: For this reason, reloading of modules is probably something to be avoided in production code
+**** easy way for users to run the program with multiple files
+#+begin_src python
+# myapplication/
+#              spam.py
+#              bar.py
+#              grok.py
+#              __main__.py
+# If __main__.py is present, you can simply run the Python interpreter on the top-level directory like this:
+# bash % python3 myapplication >> The interpreter will execute the __main__.py file as the main program.
+
+# This technique also works if you package all of your code up into a zip file
+
+# The goal is to have a supporting shell script to make execution easier.
+# you could make a top-level script like this:
+#!/usr/bin/env python3 /usr/local/bin/myapp.zip
+#+end_src
+**** reading a datafile within a package
+#+begin_src python
+# Mypackage/
+       # __init__.py
+       # somedata.dat
+       # spam.py
+# Now suppose the file spam.py wants to read the contents of the file somedata.dat. 
+# spam.py
+import pkgutil
+data = pkgutil.get_data(__package__, 'somedata.dat')
+# The resulting variable data will be a byte string containing the raw contents of the file
+
+#+end_src
+**** why not use open() to read the datafile
+***** Since each module includes a `__file__ variable with the full path, it’s not impossible to figure out the location, but it’s messy.
+****** First, any I/O operations would have to be programmed to use absolute file‐ names. 
+***** Second, packages are often installed as .zip or .egg files, which don’t preserve the files in the same way as a normal directory on the filesystem.
+******  Thus, if you tried to use open() on a datafile contained in an archive, it wouldn’t work at all.
+****** The pkgutil.get_data() function is meant to be a high-level tool for getting a datafile regardless of where or how a package has been installed. 
+***** usage, pkgutil.get_data(str_of_pkg_name, file_name)
+****** str_of_pkg_name: You can either supply it directly or use a special variable, such as `__package__.
+****** file_name: a relative name of the file within the package.
+**** adding directory to sys.path for loading packages that you can not import since it is not in the dir listed in sys.path (without hardwire
+
+#+begin_src python
+# two ways to add a path into the sys.path
+
+#solution 1
+# add a path into the PYTHONPATH through the use of environment variable
+# bash % env PYTHONPATH=/some/dir:/other/dir python3
+# In a custom application, this environment variable could be set at program startup or through a shell script of some kind.
+
+# solution 2
+# The second approach is to create a .pth file that lists the directories like this:
+# myapplication.pth
+        # /some/dir
+        # /other/dir
+# This .pth file needs to be placed into one of Python’s site-packages directories, which are typically 
+# located at /usr/local/lib/python3.3/site-packages or ~/.local/lib/python3.3/site- packages.
+#  On interpreter startup, the directories listed in the .pth file will be added to sys.path as long as they exist on the filesystem. 
+#+end_src
+***** problem with the statement "sys.path.insert(0, '/other/dir')"  
+****** fragile with hardcoded dir, cause maintenance problems if your code ever gets moved around to a new location
+****** carefully construct an appropriate absolute path using module-level variables, such as `__file__. 
+#+begin_src python
+import sys
+from os.path import abspath, join, dirname
+sys.path.insert(0, abspath(dirname('__file__'), 'src'))
+#+end_src
+**** Importing Modules Using a Name Given in a String
+#+begin_src python
+# import_module simply performs the same steps as import, but returns the resulting module object back to you as a result. 
+>>> import importlib
+>>> math = importlib.import_module('math')
+>>> math.sin(2)
+0.9092974268256817
+>>> mod = importlib.import_module('urllib.request') # import submodules
+>>> u = mod.urlopen('http://www.python.org')
+
+# If you are working with packages, import_module() can also be used to perform relative imports. 
+# However, you need to give it an extra argument. 
+# The 'package' argument is required when performing a relative import.
+# Same as 'from . import b'
+b = importlib.import_module('.b', __package__)
+#+end_src
+**** Loading Modules from a Remote Machine Using Import Hooks
+***** goal is actually to take a deep dive into the inner workings of Python’s import statement. 

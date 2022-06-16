@@ -1,0 +1,518 @@
+* Frequently used functions
+** torch.numel(): return the number of elements.
+   - a tensor t with size ([2*3*4]), t.numel() return 2*3*4
+** torch.squeeze(input, dim): remove all dims with value 1.
+   - t with the size ( A * 1 * B *1): squeeze(t)->A * B
+   - t with the size ( A * 1 * B *1): squeeze(t, 1)->A * B * 1
+** 
+**  torch.unsqueeze(input, dim): add a dim with value 1 in the specified location
+   - The tensor returned will share the same memory id with the original one
+   - if dim is negative, dim + input.dim() + 1
+
+#+begin_src python
+x=$ torch. Tensor ([1,2,3,4]
+torch. unsqueeze $(x, 0)
+unsqueeze( x, 1)
+2
+3
+4
+[torch.FloatTensor of size $4 \times 1]   
+#+end_src
+** torch.sort(dim): return a tuple (v, ind) where v is value in the sorted tensor and ind is the index for value in the original tensor
+   - if no dim is specified, default to be the last dim
+** torch.mean(): return the mean of all values
+   - torch.mean(input):
+   - torch.mean(input, dim): mean of dim specified
+** torch.gather(input, dim, index): get the values specified by dim and index
+ #+begin_src python
+out[i][j][k]= tensor[index[i][j][k]][j][k]  # { dim=0 } 
+out[i][j][k]= tensor[i][index[i][j][k]][k]  # { dim=1 } 
+out[i][j][k]= tensor[i]][j][index[i][j][k]]  # { dim=2 }
+#+end_src
+** torch.stack(sequence, dim=0):concat a sequence of tensors along a new dim.
+   - all tensors must have the same shape
+** torch.cat(inputs, dimensions=0)
+** t.expand(): fill with values
+   #+begin_src python
+1.  a = torch.Tensor([5])  
+2.  print(a.expand(1, 2)) # tensor([[5., 5.]]) 
+   #+end_src
+
+** cuda related
+*** show cuda version
+    - print(torch.version.cuda)
+*** convert tensor in cuda and cpu
+#+begin_src python
+  a = torch.Tensor([5])  
+  b = a.to('cuda') # 转成在 GPU 上运行的类型  
+  b = a.cuda() # 同上  
+  c = b.to('cpu') # 转成在 CPU 上运行的类型  
+  c = b.cpu() # 同上  
+#+end_src
+*** check the GPU status
+#+begin_src python
+.  print(torch.cuda.device_count()) # 查看可用 GPU 个数  
+2.  print(torch.cuda.current_device()) # 查看当前使用的 GPU ID  
+3.  print(torch.cuda.get_device_capability(0)) # 查看 ID 为 0 的 CUDA 容量  
+4.  print(torch.cuda.get_device_name(0)) # 查看设备名
+#+end_src
+*** empty the GPU cache
+    - print(torch.cuda.empty_cache()) # 清空缓存
+
+** Tensor related
+*** create tensors
+**** torch.tensor(data, dtype=None, device=None, requires_grad=False)
+**** create form other types
+     - torch.as_tensor(data, dtype=None, device=None)
+     - torch.from_numpy(ndarray)
+**** others
+     - torch.XXX(*sizes, out=None, dtype=None, layout=torch.strided, device=None, requires_grad=False)
+     - torch.XXX_like(input, dtype=None, layout=None, device=None, requires_grad=False)
+     - where XXX can be "zeros", "ones", "full", "empty"
+       torch.Eye()
+       
+     #+Begin_src python
+ 1.  a = torch.Tensor([[1,2],[3,4],[5,6]]) # 生成 3,2 维Tensor    
+ 2.  b = torch.zeros(3,5) # 生成内容为全0的 3，5 维Tensor    
+ 3.  c = torch.rand(3,5) # 生成内容为 0-1 随机数的 3,5 维Tensor    
+ 4.  d = c.clone() # 将c中内容复制到 d, 新旧内容指向不同的地址空间  
+     #+end_src
+*** checkout tensor info
+    #+begin_src python
+1.  a = torch.Tensor([5])    
+2.  print(a.type()) # torch.FloatTensor，默认类型为FloatTesor     
+3.  print(a.size()) # torch.Size([1])    
+4.  print(a.shape)  # torch.Size([1])    
+5.  print(a.numel()) # 1，查看元素个数  
+6.  print(a.dim()) # 1, 查看维度  
+    #+end_src
+*** change tensor type
+    #+begin_src python
+1.  a = torch.Tensor([5]) # tensor([5.])
+2.  b = a.numpy()  # 转换成numpy.array类型 [5.]  
+3.  c = a.item() # 转换成单个值 5.0  
+4.  d = torch.from_numpy(b)  # 转换成Tensor tensor([5.])  
+5.  e = d.int() # 转换成 IntTensor tensor([5], dtype=torch.int32)
+6.  f = d.tolist() # 转换成list [5.0]  
+    #+end_src
+*** concat
+    - torch.cat(seq, dim=0, out=None)：按照已经存在的维度进行concatenate。
+    - torch.stack(seq, dim=0, out=None)：按照新的维度进行concatenate。
+*** index
+**** torch.gather(input, dim, index, out=None)：在指定维度上按照索引赋值输出tensor。输入与输出大小一致。
+     - torch.gather(input, dim, index, out=None)  和 torch.scatter_(dim, index, src)是一对作用相反的方法
+the core concept is:
+#+begin_src python
+#是对于out指定位置上的值，去寻找input里面对应的索引位置，根据是index
+  out[i][j][k] = input[index[i][j][k]] [j][k]  # if dim == 0
+  out[i][j][k] = input[i][index[i][j][k]][k]  # if dim == 1
+  out[i][j][k] = input[i][j][index[i][j][k]]  # if dim == 2
+#+end_src
+#+begin_src python
+    >>> t = torch.Tensor([[1,2],[3,4]])
+    >>> torch.gather(t, 1, torch.LongTensor([[0,0],[1,0]]))
+     1  1
+     4  3
+    [torch.FloatTensor of size 2x2]
+# 具体过程就是这里的input = [[1,2],[3,4]]， index = [[0,0],[1,0]], dim = 1, 则
+  # out[0][0] = input[0][ index[0][0] ] = input[0][0] = 1
+  # out[0][1] = input[0][ index[0][1] ] = input[0][0] = 1
+  # out[1][0] = input[1][ index[1][0] ] = input[1][1] = 4
+  # out[1][1] = input[1][ index[1][1] ] = input[1][0] = 3
+#+end_src
+**** torch.scatter_(dim, index, src)
+the core concept is:
+self[ index[i][j][k] ][ j ][ k ] = src[i][j][k]  # if dim == 0
+self[ i ][ index[i][j][k] ][ k ] = src[i][j][k]  # if dim == 1
+self[ i ][ j ][ index[i][j][k] ] = src[i][j][k]  # if dim == 2
+这个就是对于src（或者说input）指定位置上的值，去分配给output对应索引位置，根据是index，所以其实把src放在左边更容易理解，
+#+begin_src python
+        x = torch.rand(2, 5)
+        >>> x
+         0.4319  0.6500  0.4080  0.8760  0.2355
+         0.2609  0.4711  0.8486  0.8573  0.1029
+        [torch.FloatTensor of size 2x5]
+      # 此例中，src就是x，index就是[[0, 1, 2, 0, 0], # [2, 0, 0, 1, 2]],  dim=0
+      # 我们把src写在左边，把self写在右边，这样好理解一些,
+        >>> torch.zeros(3, 5).scatter_(0, torch.LongTensor([[0, 1, 2, 0, 0], [2, 0, 0, 1, 2]]), x)
+         0.4319  0.4711  0.8486  0.8760  0.2355
+         0.0000  0.6500  0.0000  0.8573  0.0000
+         0.2609  0.0000  0.4080  0.0000  0.1029
+        [torch.FloatTensor of size 3x5]
+      但要注意是把src的值赋给self，所以用箭头指过去:
+
+    # 0.4319 = Src[0][0] ----->self[ index[0][0] ][0] ----> self[0][0]
+    # 0.6500 = Src[0][1] ----->self[ index[0][1] ][1] ----> self[1][1]
+    # 0.4080 = Src[0][2] ----->self[ index[0][2] ][2] ----> self[2][2]
+    # 0.8760 = Src[0][3] ----->self[ index[0][3] ][3] ----> self[0][3]
+    # 0.2355 = Src[0][4] ----->self[ index[0][4] ][4] ----> self[0][4]
+    # 0.2609 = Src[1][0] ----->self[ index[1][0] ][0] ----> self[2][0]
+    # 0.4711 = Src[1][1] ----->self[ index[1][1] ][1] ----> self[0][1]
+    # 0.8486 = Src[1][2] ----->self[ index[1][2] ][2] ----> self[0][2]
+    # 0.8573 = Src[1][3] ----->self[ index[1][3] ][3] ----> self[1][3]
+    # 0.1029 = Src[1][4] ----->self[ index[1][4] ][4] ----> self[2][4]
+  # 则我们把src也就是 x的每个值都成功的分配了出去，然后我们再把self对应位置填好，
+  # 剩下的未得到分配的位置，就填0补充。
+#+end_src
+     - torch.index_select(input, dim, index, out=None)：选出一维度的一些slice组合成新的tensor。指定维度的大小与index大小一致。
+     - torch.masked_select(input, mask, out=None)：按照mask输出一个一维的tensor。
+     - torch.take(input, indices)：将输入看成1D tensor，按照索引得到输出。输出大小与index大小一致。
+     - torch.nonzero(input, out=None)：输出非0 元素的坐标。
+     - torch.where(condition, x, y)：按照条件从x和y中选出满足条件的元素组成新的tensor。
+ 
+*** transformation
+    - torch.reshape(input, shape)
+    - torch.t(input)： 只针对2D tensor转置
+    - torch.transpose(input, dim0, dim1)：交换两个维度
+    - torch.squeeze(input, dim=None, out=None)：去除那些维度大小为1的维度
+    - torch.unbind(tensor, dim=0)：去除某个维度
+    - torch.unsqueeze(input, dim, out=None)：在指定位置添加维度。
+*** math operations
+**** torch.addcdiv(tensor, value=1, tensor1, tensor2, out=None)
+ 用tensor2对tensor1逐元素相除，然后乘以标量值value 并加到tensor。
+ 张量的形状不需要匹配，但元素数量必须一致。
+ 如果输入是FloatTensor or DoubleTensor类型，则value 必须为实数，否则须为整数
+ #+begin_src latex
+ out $_{i}=$ tensor $_{i}+$ value $\times \frac{\text { tensor } 1_{i}}{\text { tensor2 }_{i}}$
+ #+end_src
+**** torch.addcmul(tensor, value=1, tensor1, tensor2, out=None)
+     #+begin_src latex
+out $_{i}=$ tensor $_{i}+$ value $\times$ tensor $1_{i} \times$ tensor $2_{i}$
+     #+end_src
+**** torch.ceil(input, out=None)
+#+begin_src latex
+out $_{i}=\left\lceil\right.$ input $\left._{i}\right\rceil=\left\lfloor\right.$ input $\left._{i}\right\rfloor+1$
+#+end_src
+**** torch.clamp(input, min, max, out=None) ：max 或者min 可以用 * 代替，表示没有该项限制
+     #+begin_src latex
+$y_{i}=\left\{\begin{array}{ll}\min & \text { if } x_{i}<\min \\ x_{i} & \text { if } \min \leq x_{i} \leq \max \\ \max & \text { if } x_{i}>\max \end{array}\right.$
+     #+end_src
+**** torch.erf(tensor, out=None)
+     - Computes the error function of each element. The error function is defined as follows:
+     #+begin_src latex
+$\operatorname{erf}(x)=\frac{2}{\sqrt{\pi}} \int_{0}^{x} e^{-t^{2}} d t$
+     #+end_src
+**** torch.fmod(input, divisor, out=None): 计算余数
+**** torch.frac(tensor, out=None)
+#+begin_src latex
+out $_{i}=$ input $_{i}-$ \lfloorinput $\left._{i}\right\rfloor$
+#+end_src
+**** torch.neg(input, out=None)
+#+begin_src latex
+out $=-1 \times$ input
+#+end_src
+**** torch.pow(base, input, out=None)
+#+begin_src latex
+\mathrm{out}_{i}=\text { base }^{\text {input }_{i}}
+#+end_src
+**** torch.reciprocal(input, out=None)
+#+begin_src latex
+\text { out }_{i}=\frac{1}{\text { input }_{i}}
+#+end_src
+**** torch.remainder(input, divisor, out=None)：计茜余数
+     #+begin_src latex
+
+     #+end_src
+**** torch.rsqrt(input, out=None)
+     #+begin_src latex
+\text { out }_{i}=\frac{1}{\sqrt{\text { input }_{i}}}
+     #+end_src
+**** torch.sign(input, out=None) ：取符号
+**** torch.trunc(input, out=None)：截取整数部分
+*** Reduction operations
+**** torch.dist(input, other, p=2):计算p范数
+**** torch.norm(): 计算2范数
+**** torch.prod():计算所有元素的积
+**** torch.unique(input, sorted=False, return_inverse=False):以1D向量保存张量中不同的元素。
+*** comparison operations
+**** torch.isfinite(tensor) / torch.isinf(tensor) / torch.isnan(tensor)
+     - 返回一个标记元素是否为 finite/inf/nan 的mask 张量。
+**** torch.kthvalue(input, k, dim=None, keepdim=False, out=None) -> (Tensor, LongTensor)
+     - 返回最小的第k个元素，如果没有指定维度，则默认为最后一个维度。
+**** torch.sort(input, dim=None, descending=False, out=None)
+     - 沿着某一维度对张量进行升序排列。
+**** torch.topk(input, k, dim=None, largest=True, sorted=True, out=None)
+     - 返回最大的k个元素。 
+*** Other Operations
+**** torch.bincount(self, weights=None, minlength=0)
+     - 返回每个值得频数。
+****  torch.cross(input, other, dim=-1, out=None)
+     - 按照维度计算叉积。
+****  torch.diag(input, diagonal=0, out=None)
+     - 如果输入时1D,则返回一个相应的对角矩阵；如果输入时2D，则返回相应对角线的元素。
+****  torch.flip(input, dims)
+     - 按照给定维度翻转张量
+****  torch.histc(input, bins=100, min=0, max=0, out=None)
+     - 计算张量的直方图。
+****  torch.meshgrid(seq)
+     - 生成网格（可以生成坐标）。 
+
+** operations on tensors
+
+   
+*** torch.chunk(intput,chunks,dim=0)
+    - 第二个参数chunks是你想均匀分割的份数，如果该tensor在你要进行分割的维度上的size不能被chunks整除，则最后一份会略小（也可能为空）
+    - 第三个参数表示分割维度，dim=0按行分割，dim=1表示按列分割
+    - 该函数返回由小tensor组成的list
+
+*** torch.cumsum(input, dim, out=None) → Tensor
+    - 返回输入沿指定维度的累积和。例如，如果输入是一个N元向量，则结果也是一个N元向量，第i 个输出元素值为 yi=x1+x2+x3+...+xi
+
+** serialize
+    1.torch.save：将序列化的对象保存到disk。这个函数使用Python的pickle实用程序进行序列化。使用这个函数可以保存各种对象的模型、张量和字典。
+    2.torch.load：使用pickle unpickle工具将pickle的对象文件反序列化为内存。
+    3.torch.nn.Module.load_state_dict:使用反序列化状态字典加载model’s参数字典。
+#+begin_src python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Define model
+class TheModelClass(nn.Module):
+    def __init__(self):
+        super(TheModelClass, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def farward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+# Initialize model
+model = TheModelClass()
+# Initialize optimizer
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
+
+print("Model's state_dict:")
+# Print model's state_dict
+for param_tensor in model.state_dict():
+    print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+print("optimizer's state_dict:")
+# Print optimizer's state_dict
+for var_name in optimizer.state_dict():
+    print(var_name, "\t", optimizer.state_dict()[var_name])
+#+end_src
+
+*** save model
+**** save state_dict only, and load the state_dict only
+  #+begin_src python
+  #　只保存模型的学习参数
+  torch.save(model.state_dict(), PATH)
+
+  #　读取模型的可学习参数
+  model = TheModelClass(*args, **kwargs)
+  model.load_state_dict(torch.load(PATH))
+  model.eval()
+  #+end_src
+**** save the whole model, and load the whole model 
+  #+begin_src python
+  # 保存整个模型
+  torch.save(the_model, PATH)
+
+  # 读取整个模型
+  the_model = torch.load(PATH)
+  model.eval()
+  #+end_src
+**** save hyper-parameters and model parameters
+#+begin_src python
+# 序列化字典
+# save
+torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+        ...
+        }, PATH)
+        
+# load
+model = TheModelClass(*args, **kwargs)
+optimizer = TheOptimizerClass(*args, **kwargs)
+checkpoint = torch.load(PATH)
+model.load_state_dict(checkpoint['model_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+epoch = checkpoint['epoch']
+loss = checkpoint['loss']
+
+model.eval()
+# - or -
+model.train()
+#+end_src
+*** 
+
+*** torch.max(input, dim)-> max value and index in the specified dimensions
+    - torch.max(outputs.data,1): return max value in each row
+     
+*** torch.nn.Conv2d
+**** torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
+     - in_channels(int) – 输入信号的通道
+     - out_channels(int) – 卷积产生的通道
+     - kerner_size(int or tuple) - 卷积核的尺寸
+     - stride(int or tuple, optional) - 卷积步长
+     - padding(int or tuple, optional) - 输入的每一条边补充0的层数
+     - dilation(int or tuple, optional) – 卷积核元素之间的间距（空洞卷积时使用）
+     - groups(int, optional) – 从输入通道到输出通道的阻塞连接数
+     - bias(bool, optional) - 如果bias=True，添加偏置
+正常的卷积如下：->-
+- 输入图片的shape是(height, width, in_channels)，
+- filter的shape是(height_f, width_f, in_channels)，filter和输入的第三维必须相等。
+- 对于一个filter而言，输出的图片是(height_o, width_o)，注意，并没有第三维！！
+- 所谓的outchannels就是filter的个数，所以输出是(height_o, width_o, out_channels)
+卷积操作就是，将这个三维的filter（例如3x3x3）与输入图像的对应位置相乘，再将这27个数相加，得到的结果就是output的一个元素。
+#+begin_src latex
+对于复杂的卷积, 假设输入的尺度是 $\left(N, C_{i n}, H, W\right),$ 输出尺度 $\left(N, C_{o} u t, H_{o} u t, W_{o} u t\right)$
+$$
+\operatorname{out}\left(N_{i}, C_{o u t_{j}}\right)=\operatorname{bias}\left(C_{o u t_{j}}\right)+\sum_{k=0}^{C_{i n}-1} \operatorname{weight}\left(C_{o u t_{j}}, k\right) \bigotimes \operatorname{input}\left(N_{i}, k\right)
+$$
+$Q:$ 表示二维的相关系数计算 stride: 控制相关系数的计算步长 dilation(空洞卷积): 用于控制内核点之间的距离, 详细描述在 https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+#+end_src
+
+groups: 控制输入和输出之间的连接：
+- group=1，输出是所有的输入的卷积；
+- group=2，此时相当于有并排的两个卷积层，每个卷积层计算输入通道的一半，并且产生的输出是输出通道的一半，随后将这两个输出连接起来。
+
+参数kernel_size，stride,padding，dilation也可以是一个int的数据，此时卷积height和width值相同;也可以是一个tuple数组，tuple的第一维度表示height的数值，tuple的第二维度表示width的数值
+#+begin_src latex
+input: $\left(N, C_{i n}, H_{i n}, W_{i n}\right)$
+output: $\left(N, C_{\text {out }}, H_{\text {out }}, W_{\text {out }}\right)$
+$\quad \circ \quad H_{o u t}=$ floor $\left(\left(H_{\text {in }}+2\right.\right.$ padding $[0]-$ dilation $\left.\left.[0]($ kernerl_size $[0]-1)-1\right) /\right.$ stride $\left.[0]+1\right)$
+$\quad \circ \quad W_{\text {out }}=$ floor $\left(\left(W_{\text {in }}+2\right.\right.$ padding $[1]-$ dilation $\left.\left.[1]($ kernerl_size $[1]-1)-1\right) /\right.$ stride $\left.[1]+1\right)$
+#+end_src
+*** torch.nn.MaxPool2d
+    - torch.nn.MaxPool2d(kernel_size, stride=None, padding=0, dilation=1, return_indices=False, ceil_mode=False)
+#+begin_src python
+$\operatorname{out}\left(N_{i}, C_{j}, k\right)=\max _{m=0}^{k H-1} \max _{m=0}$ input $\left(N_{i}, C_{j},\right.$ stride $[0] h+m,$ stride $\left.[1] w+n\right)$
+#+end_src
+
+如果padding不是0，会在输入的每一边添加相应数目0
+
+dilation用于控制内核点之间的距离，详细描述在
+
+参数kernel_size，stride, padding，dilation数据类型： 可以是一个int类型的数据，此时卷积height和width值相同; 也可以是一个tuple数组（包含来两个int类型的数据），第一个int数据表示height的数值，tuple的第二个int类型的数据表示width的数值
+
+kernel_size(int or tuple) - max pooling的窗口大小
+- stride(int or tuple, optional) - max pooling的窗口移动的步长。!!!!默认值是kernel_size!!!!!!
+- padding(int or tuple, optional) - 输入的每一条边补充0的层数
+- dilation(int or tuple, optional) – 一个控制窗口中元素步幅的参数
+- return_indices - 如果等于True，会返回输出最大值的序号，对于上采样操作会有帮助
+- ceil_mode - 如果等于True，计算输出信号大小的时候，会使用向上取整，代替默认的向下取整的操作
+
+#+begin_src latex
+$\left(N, C, H_{i n}, W_{i n}\right)$
+$\left(N, C, H_{o u t}, W_{o u t}\right)$
+$H_{o u t}=f \operatorname{loor}\left(\left(H_{i n}+2 p a d d i n g[0]-\right.\right.$ dilation $\left.\left.[0]\left(\right.\right.\right.$ kernel $_{-}$ size $\left.\left.\left.[0]-1\right)-1\right) /\right.$ stride $[0]+1$
+$W_{o u t}=f \operatorname{loor}\left(\left(W_{i n}+2\right.\right.$ padding $[1]-$ dilation $\left.\left.[1]($ kernel_size $[1]-1)-1\right) /\right.$ stride $[1]+1$
+#+end_src
+*** torh.bmm(batch_1, batch_2, out)
+*** layout:表示了tensor的内存分布方式。目前，pytorch支持torch.strided方式以及实验性质地支持torch.sparse_coo。前者是目前普遍的使用方式。每一个strided tensor都关联一个torch.storage以保存其数据。
+*** 
+
+** torc.nn
+   
+*** container
+    - torch.nn.Module是所有网络的基类。你的模型也应该继承这个类。
+    - Modules也可以包含其它Modules,允许使用树结构嵌入他们。
+    - 你可以将子模块赋值给模型属性。
+
+*** ConvTranspose2d
+    class torch.nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=True)
+
+注意，这上面的stride、padding是争对于与原始卷积上的stride和padding
+2维的转置卷积操作（transposed convolution operator，注意改视作操作可视作解卷积操作，但并不是真正的解卷积操作） 该模块可以看作是Conv2d相对于其输入的梯度，有时（但不正确地）被称为解卷积操作。
+
+由于内核的大小，输入的最后的一些列的数据可能会丢失。因为输入和输出是不是完全的互相关。因此，用户可以进行适当的填充（padding操作）。
+
+- in_channels(int) – 输入信号的通道数
+- out_channels(int) – 卷积产生的通道数
+- kerner_size(int or tuple) - 卷积核的大小
+- stride(int or tuple,optional) - 卷积步长
+- padding(int or tuple, optional) - 输入的每一条边补充0的层数
+- output_padding(int or tuple, optional) - 输出的每一条边补充0的层数
+- dilation(int or tuple, optional) – 卷积核元素之间的间距
+- groups(int, optional) – 从输入通道到输出通道的阻塞连接数
+- bias(bool, optional) - 如果bias=True，添加偏置
+
+** activation function
+   
+*** class torch.nn.ReLU(inplace=False): {ReLU}(x)= max(0, x)
+
+*** class torch.nn.ELU(alpha=1.0, inplace=False): f(x) = max(0,x) + min(0, alpha * (e^x - 1))
+    
+*** torch.nn.PReLU(num_parameters=1, init=0.25): PReLU(x) = max(0,x) + a * min(0,x)
+    
+*** torch.nn.LeakyReLU(negative_slope=0.01, inplace=False): f(x) = max(0, x) + {negative_slope} * min(0, x)
+    
+*** torch.nn.Threshold(threshold, value, inplace=False): y=x,if x>=threshold y=value,if x<threshold
+    - 注意这里的阈值和我们想象的阈值可能不太一样. 当元素值大于阈值时保留原值，否则用新值替代
+
+
+
+    
+* Create your Dataset
+
+** your image files
+
+** a text file for description
+
+*** including "path + filename"
+
+*** label
+
+*** example: "train_data/0_0000.jpg 0", where 0 is the label
+    
+** code
+#+begin_src python
+from PIL import Image
+import torch
+ 
+class MyDataset(torch.utils.data.Dataset): #创建自己的类：MyDataset,这个类是继承的torch.utils.data.Dataset
+    def __init__(self,root, datatxt, transform=None, target_transform=None): #初始化一些需要传入的参数
+        super(MyDataset,self).__init__()
+        fh = open(root + datatxt, 'r') #按照传入的路径和txt文本参数，打开这个文本，并读取内容
+        imgs = []                      #创建一个名为img的空列表，一会儿用来装东西
+        for line in fh:                #按行循环txt文本中的内容
+            line = line.rstrip()       # 删除 本行string 字符串末尾的指定字符，这个方法的详细介绍自己查询python
+            words = line.split()   #通过指定分隔符对字符串进行切片，默认为所有的空字符，包括空格、换行、制表符等
+            imgs.append((words[0],int(words[1]))) #把txt里的内容读入imgs列表保存，具体是words几要看txt内容而定
+                                        # 很显然，根据我刚才截图所示txt的内容，words[0]是图片信息，words[1]是lable
+        self.imgs = imgs
+        self.transform = transform
+        self.target_transform = target_transform
+ 
+    def __getitem__(self, index):    #这个方法是必须要有的，用于按照索引读取每个元素的具体内容
+        fn, label = self.imgs[index] #fn是图片path #fn和label分别获得imgs[index]也即是刚才每行中word[0]和word[1]的信息
+        img = Image.open(root+fn).convert('RGB') #按照path读入图片from PIL import Image # 按照路径读取图片
+ 
+        if self.transform is not None:
+            img = self.transform(img) #是否进行transform
+        return img,label  #return很关键，return回哪些内容，那么我们在训练时循环读取每个batch时，就能获得哪些内容
+ 
+    def __len__(self): #这个函数也必须要写，它返回的是数据集的长度，也就是多少张图片，要和loader的长度作区分
+        return len(self.imgs)
+ 
+#根据自己定义的那个勒MyDataset来创建数据集！注意是数据集！而不是loader迭代器
+train_data=MyDataset(txt=root+'train.txt', transform=transforms.ToTensor())
+test_data=MyDataset(txt=root+'test.txt', transform=transforms.ToTensor())
+#然后就是调用DataLoader和刚刚创建的数据集，来创建dataloader，这里提一句，loader的长度是有多少个batch，所以和batch_size有关
+train_loader = DataLoader(dataset=train_data, batch_size=64, shuffle=True)
+test_loader = DataLoader(dataset=test_data, batch_size=64)
+
+#+end_src
+pytorch doc in Chinese
+https://pytorch-cn.readthedocs.io/zh/latest/
+
+https://litianbo243.github.io/2019/08/05/pytorch%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/#Normalize
+* define your layer
+  - https://blog.csdn.net/xholes/article/details/81478670
+
+
+  

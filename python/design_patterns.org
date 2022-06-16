@@ -1,0 +1,3 @@
+* Design pattern for python
+- https://blog.csdn.net/xholes/article/details/82829535
+- https://www.cnblogs.com/Liqiongyu/p/5916710.html

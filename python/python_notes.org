@@ -1,0 +1,2150 @@
+* numpy learning
+  
+** axis=i
+*** apply operations on each elements of i-th index (element in the (i+1)-th square bracket) of the shape
+*** example: 2d: 
+*** axis=0, vertical, axis = 1, horizontally, axis=3, can be viewed as operate horizontally on the element of a[0,...]
+** basics
+*** ndarray: with an alias array, and axis means dim
+*** Attributes
+**** ndarray.ndim:=len(ndarray.shape) =rank, which no. of dims (axis)
+**** ndarray.shape: (n, m): a tuple of integer, with each element denoting the no. of element in the corresponding dim
+**** ndarray.size: = total no. of elements = ndarray.shape[0]* ndarray.shape[1]
+**** ndarray.dtype: the type of elements in the ndarray
+**** ndarray.itemsize: the byte size for each element= bits/8
+**** ndarray.data: the data in cache (memory) of the array
+*** example
+*** method
+**** reshape(): won't change the original ndarray
+**** flatten(): return a new flatten to 1-d array
+**** astype(): return a new array with the specified data type
+**** sum(): sum up along axis
+**** cumsum():
+**** max():
+**** min():
+**** mean():
+*** how to create ndarray
+**** np.array( a python list, or tuple, or list of tuple): the dtype is inferred from data
+***** np.array([...], dtype=complex): the dtype can be specified
+**** np.asarray(arr_like, dtype=None, order=None):
+**** np.fromiter(iterable, dtype, count=-1):build array from iterable
+***** The number of items to read from *iterable*.  The default is -1,which means all data is read.
+**** np.logspace(start, stop, num=50, base=10.0, dtype=None):
+***** In linear space, the sequence starts at ``base ** start``(`base` to the power of `start`) and ends with ``base ** stop``
+***** 
+**** np.full(shape, fill_value): return an array with the specified shape and value
+**** np.random.random(shape)
+**** np.eye(n_dims)
+**** np.diag(list_of_values): return a diagonal array with the specified diagonal values
+**** np.zeros(shape: a tuple or an int for 1d array): the default dtype is 'float64'
+***** np.zeros_like()
+**** np.empty(shape: a 2d tuple): its values are randomly init, with default dtype is float64
+***** np.empty_like()
+**** np.arange(start, end, step): return an array. When used with float parameters, cannot control the no. of elements created, solution: linspace
+**** np.linspace(start, end, no of elements):
+**** np.ones()
+***** np.ones_like()
+**** np.fromfunction(function, shape, dtype):
+***** (N,) tuple of ints Shape of the output array, which also determines the shape of the coordinate arrays passed to `function`.
+***** function(index_1): for 1d or function(index_1, index_2) for 2d, where index_i in np.arange(shape[i])
+*** create bool array
+**** b = np.array([1,0, 3,0], dtype=bool)
+*** print the whole array
+**** np.set_printoptions(threshold=sys.maxsize)       # sys module should be imported
+** index
+*** index of an array can be any list, array or tuple
+**** a[1:4] == a[ [0,1,2,3] ]
+**** a[array([1,2])] is legal
+** basic operations
+*** the math operations on an array will be applied on each element
+#+begin_src python
+a = np.array( [20,30,40,50] )
+b = np.arange( 4 )
+c = a-b # array([20, 29, 38, 47])
+b**2 # array([0, 1, 4, 9])
+a<35 # array([ True, True, False, False])
+#+end_src
+*** '\*': element-wised multiplication
+*** matrix multiplication: @ or 'dot' function (python>=3.5) A*B, A.dot(B)
+*** some operations can modify array in place: such as '+=', `*=`
+**** a += b: it requires that b can be automatically converted to the type of a, o.w., error
+**** a(int) += b(float): error
+**** the result of operations involving different types of array:
+***** cast to the higher precision representation
+*** unary-operation: one element
+**** a.sum():
+**** a.min():
+**** a.max():
+**** can be applied on given axis
+***** b.sum(axis=None) # sum of each column, axis default is None, denoting sum all
+***** b.min(axis=0) # min of each row, default is None, axis default is None
+*****  b.cumsum(axis=1) # cumulative sum along each row, axis default is None
+*** ufunc: universal function
+**** operates in an element-by-element fashion, supporting array broadcasting, type casting, and several other standard features.
+**** example, sin, cos, exp, sqrt, add
+*** slicing
+**** a[ : :-1]: revert the array
+**** the slicing can be performed on each axis: a[1:3, 2:3]
+**** when slicing is performed on a no axis that less than rank, the slicing on the missing axis is set to be all along the axis, that is ':'
+***** b.shape-> (2, 3), b[-1]-> =b[-1, :] # the last row
+***** b[i] = b[i,:] = b[i,...]
+***** '...': denote the rest of the index, take for example x, x has rank five, len(x.shape) ->5
+***** x[1,2,...] = x[1,2,:,:,:]，
+***** x[...,3] = x[:,:,:,:,3]
+***** x[4,...,5,:] = x[4,:,:,5,:]
+**** when iterate over a ndarray, it is on the first dim 
+***** for row in b: print(row)
+**** to iterate over every item, we can use the 'flat' attribute, which is the generator of all the elements
+***** a.flat: attribute, return a flat iterator over an array, return type: <class 'numpy.flatiter'>
+***** a.flatten():Returns a flattened copy of an array.
+***** for element in b.flat: print(element)
+*** operation on the shape
+**** the following operations can change the shape of an array, and return the modified array, but the original one is unchanged
+**** a.shape = x,y # can also
+**** a.ravel()  # returns the array, flattened
+**** a.reshape(6,2) # return the array with a modified shape
+***** a.reshanp.vstack()np.hstack()pe(shape=ints or a tuple of int)
+***** if the snp.vstack()np.hstack()ize =-1, the dimension will be inferred automatically
+**** a.resize(new_shape): change shape and size of array in-place
+**** a.T # return the transposed array
+**** ndarray.resize(): will change the original array
+*** array stacking and concatenating
+**** np.vstack(): stack vertically
+**** np.hstack(): stack horizontally
+***** np.floor(): return the floor value element-wised
+**** np.column_stack():
+***** Stack 1-D arrays as columns into a 2-D array.
+***** 2-D arrays are stacked as-is, just like with `np.hstack()`
+***** a = np.array([4.,2.]), b = np.array([3.,8.]), np.column_stack((a,b)) -> array([[ 4., 3.], [ 2., 8.]])
+***** np.hstack((a,b)) -> array([ 4., 2., 3., 8.])
+*****  a[:,newaxis] # this allows to have a 2D columns vector -> array([[ 4.], [ 2.]])
+***** np.column_stack((a[:,newaxis],b[:,newaxis])) = np.hstack((a[:,newaxis],b[:,newaxis]))
+**** np.row_stack() = np.vstack() for any shape of input.
+*** np.r_ and np.c_
+**** np.r_[1:4, 0, 4]->array([1, 2, 3, 0, 4]): create array along an axis
+**** when used with array parameters, the r_ = vstack, c_ = hstack, and allows to specify the axis to concatenate
+*** splitting an array
+**** np.hsplit(a, 3) # split a into 3 array
+**** np.hsplit(a (3, 4)) # split a after the third and the fourth column
+**** np.vsplit(): split vertically
+**** np.array_split(): split along the specified axis
+*** copy and view
+**** making alias of a array won't copy the array
+***** a = np.arange(10), b = a, #b is an alias of a
+**** passing an changeable object to a function won't copy the object
+***** def (x):print(id(x)), f(a):  a and x point to the same array
+**** view and shallow copy
+***** different array can share the same data. 
+***** view(): New view of array with the same data.
+****** c = a.view(), # c is a view of the data owned by a
+****** c.flags.owndata -> false
+****** change the shape of c won't affect the the shape of a
+****** but change the value of c will change the value of a
+***** slicing will return a view of the original data, which is an alias instead of a copy.
+****** s = a[:, 1:3], # return a view of the data owned by a
+****** s[:] = 10, vs s=10, there are different, the former change the data of a
+**** deep copy: copy data and create new array
+***** if the original array is not needed, should use the copy() after slicing
+***** b = a[:100].copy, del a, # assume a is a large intermediary result
+***** if b = a[:100], when deleting a, the a will persist in the memory
+** Method
+*** frequently used method
+**** Array Creation - arange, array, copy, empty, empty_like, eye, fromfile, fromfunction, identity, linspace, logspace, mgrid, ogrid, ones, ones_like, zeros, zeros_like
+**** Conversions - ndarray.astype, atleast_1d, atleast_2d, atleast_3d, mat
+**** Manipulations - array_split, column_stack, concatenate, diagonal, dsplit, dstack, hsplit, hstack, ndarray.item, newaxis, ravel, repeat, reshape, resize, squeeze, swapaxes, take, transpose, vsplit, vstack
+**** Questions - all, any, nonzero, where,np.vstack()np.hstack()
+**** Ordering - argmax, argmin, argsort, max, min, ptp, searchsorted, sort
+**** Operations - choose, compress, cumprod, cumsum, inner, ndarray.fill, imag, prod, put, putmask, real, sum
+**** Basic Statistics - cov, mean, std, var
+**** Basic Linear Algebra - cross, dot, outer, linalg.svd, vdot
+*** broadcasting
+**** ruels: When operating on two arrays, NumPy compares their shapes element-wise. It starts with the trailing (i.e. rightmost) dimensions and works its way left. Two dimensions are compatible when they are equal, or one of them is 1
+***** I.if all the input arrays have different shape, then "1" is used to fill the smallest array such that they have the same shape
+**** example: x = np.arange(4), xx = x.reshape(4,1), y = np.ones(5), z = np.ones((3,4)), x and xx can be broadcast, but x and y are not
+** more slicingnp.vstack()np.hstack()
+#+begin_src python
+>>> a = np.arange(12)**2                       # the first 12 square numbers
+>>> i = np.array( [ 1,1,3,8,5 ] )              # an array of indices
+>>> a[i]                                       # the elements of a at the positions i
+array([ 1,  1,  9, 64, 25])
+>>>
+>>> j = np.array( [ [ 3, 4], [ 9, 7 ] ] )      # a bidimensional array of indices
+>>> a[j]                                       # the same shape as j
+array([[ 9, 16],
+       [81, 49]])
+# when the rank(a)>1, a single index of array indicates the first dim of a.
+>>> palette = np.array( [ [0,0,0],                # black
+...                       [255,0,0],              # red
+...                       [0,255,0],              # green
+...                       [0,0,255],              # blue
+...                       [255,255,255] ] )       # white
+>>> image = np.array( [ [ 0, 1, 2, 0 ],           # each value corresponds to a color in the palette
+...                     [ 0, 3, 4, 0 ]  ] )
+>>> palette[image]                            # the (2,4,3) color image
+array([[[  0,   0,   0],
+        [255,   0,   0],
+        [  0, 255,   0],
+        [  0,   0,   0]],
+       [[  0,   0,   0],
+        [  0,   0, 255],
+        [255, 255, 255],
+        [  0,   0,   0]]])
+
+# we can provide multiple index arrays, and every array should have the same shape
+>>> a = np.arange(12).reshape(3,4)
+>>> anp.vstack()np.hstack()
+array([[ 0,  1,  2,  3],
+       [ 4,  5,  6,  7],
+       [ 8,  9, 10, 11]])
+>>> i = np.array( [ [0,1],                        # indices for the first dim of a
+...                 [1,2] ] )
+>>> j = np.array( [ [2,1],                        # indices for the second dim
+...                 [3,3] ] )
+>>>
+>>> a[i,j]                                     # i and j must have equal shape
+array([[ 2,  5],
+       [ 7, 11]])
+>>>
+>>> a[i,2]
+array([[ 2,  6],
+       [ 6, 10]])
+>>>
+>>> a[:,j]                                     # i.e., a[ : , j]
+array([[[ 2,  1],
+        [ 3,  3]],
+       [[ 6,  5],
+        [ 7,  7]],
+       [[10,  9],
+        [11, 11]]])
+# equivalently we can have
+>>> l = [i,j]
+>>> a[l]                                       # equivalent to a[i,j]
+array([[ 2,  5],
+       [ 7, 11]])
+
+
+# index can be used to assign new value
+>>> a = np.arange(5)
+>>> a
+array([0, 1, 2, 3, 4])
+>>> a[[1,3,4]] = 0
+>>> a
+array([0, 0, 2, 0, 0])
+
+# when a index is used to assign value multiple times, it keeps the last oen
+>>> a = np.arange(5)
+>>> a[[0,0,2]]=[1,2,3]
+>>> a
+array([2, 1, 3, 3, 4])
+
+# when using with '+=', the result may be unexpected
+>>> a = np.arange(5)
+>>> a[[0,0,2]]+=1
+>>> a
+array([1, 1, 3, 3, 4]) # though 0 appears twice, but it increases by 1
+
+#+end_src
+** bool slicing
+*** I.use a bool array that has the same shape with the original array
+*** Slicing on the first dim
+
+
+
+
+#+begin_src python
+>>> a = np.arange(12).reshape(3,4)
+>>> b = a > 4np.vstack()np.hstack()
+>>> b                                          # b is a boolean with a's shape
+array([[False, False, False, False],
+       [False,  True,  True,  True],
+       [ True,  True,  True,  True]])
+>>> a[b]                                       # 1d array with the selected elements
+array([ 5,  6,  7,  8,  9, 10, 11])
+
+# this one is frequently used in assigning values
+>>> a[b] = 0                                   # All elements of 'a' higher than 4 become 0
+>>> a
+array([[0, 1, 2, 3],
+       [4, 0, 0, 0],
+       [0, 0, 0, 0]])
+#+end_src
+*** For each dim, we can have a boolean filter, but the length of the filter must match the length of the targeted dim 
+#+begin_src python
+>>> a = np.arange(12).reshape(3,4)
+>>> b1 = np.array([False,Trunp.vstack()np.hstack()e,True])             # first dim selection
+>>> b2 = np.array([True,False,True,False])       # second dim selection
+a[b1,:]                                   # selecting rows
+array([[ 4,  5,  6,  7],
+       [ 8,  9, 10, 11]])
+a[b1,b2]                                  # a weird thing to do
+array([ 4, 10]) 
+: stack two 1d array to have a 2d array: stack two 1d array to have a 2d array: stack two 1d array to have a 2d array: stack two 1d array to have a 2d array: stack two 1d array to have a 2d array: stack two 1d array to have a 2d array: stack two 1d array to have a 2d array#+end_src
+** ix_() function
+*** ix_() can be used to combine different vectors in a way to generate n-tuple
+**** example: for vector a, b and c, we show all the combinations of them in a+b*c
+#+begin_src python 
+>>> a = np.array([2,3,4,5])
+>>> b = np.array([8,5,4])
+>>> c = np.array([5,4,6,8,3])
+>>> ax,bx,cx = np.ix_(a,b,c) # ax.shape= (4, 1, 1), bx.shape= (1, 3, 1), cx.shape= (1, 1, 5)
+>>> result = ax+bx*cx
+>>> result
+array([[[42, 34, 50, 66, 26],
+        [27, 22, 32, 42, 17],
+        [22, 18, 26, 34, 14]],
+       [[43, 35, 51, 67, 27],
+        [28, 23, 33, 43, 18],
+        [23, 19, 27, 35, 15]],
+       [[44, 36, 52, 68, 28],
+        [29, 24, 34, 44, 19],
+        [24, 20, 28, 36, 16]],
+       [[45, 37, 53, 69, 29],
+        [30, 25, 35, 45, 20],
+        [25, 21, 29, 37, 17]]])
+>>> result[3,2,4] # third element in a, second element in b, and fourth element in c
+17
+>>> a[3]+b[2]*c[4]
+17
+#+end_src
+
+#+begin_src python
+# similar implementation to the previous one
+>>> def ufunc_reduce(ufct, *vectors):
+...    vs = np.ix_(*vectors)
+...    r = ufct.identity # np.add.identity =0, np.multiply.identity=1,...
+...    for v in vs:
+...        r = ufct(r,v)
+...    return r
+ufunc_reduce(np.add,a,b,c)
+#+end_src
+** reshape
+*** np.vstack(): stack two 1d array to have a 2d array
+*** np.hstack()
+* Numpy sort
+** numpy.sort(a, axis, kind, order)
+*** kind: {'quicksort', 'mergesort', 'heapsort', 'stable'}
+** np.argsort(): return the index in the original array with ascending order
+** numpy.lexsort(): sort by multiple keys
+** 
+** arr.sort(axis):Sort an array in-place
+** a[::-1]: reverse a
+** adding/removing
+*** np.append(arr,values): Append values to the end of an array. A copy of `arr` with `values` appended to `axis`
+*** np.insert(arr, position, value)
+*** np.delete(arr, obj):Return a new array with sub-arrays along an axis deleted. For a one dimensional array, this returns those entries not returned by `arr[obj]`.
+
+
+* API
+** numpy.array(object, dtype = None, copy = True, order = None, subok = False, ndmin = 0)
+*** object:any object exposing the array interface, or any (nested) sequence.
+*** order: C->rows, F->column, K:default
+*** ndmin: specified the dim of the returned array
+    
+* Numpy IO
+  
+** np.load(), np.save(file, arr): save to binary
+
+** np.savez(file, arr_1, arr_2): write multiple arrays with compression 
+
+** np.loadtxt(), np.savetxt(): load and save to text
+
+
+   
+
+* June 13, 2021
+
+** decorator:
+*** Rule-of-thumb: the decorator must be callable, or any object that has `__call__()` method
+*** For example: decorator can be a function, partial function or a class with `__call__()` method
+*** It is used to add extract functionality to an existing function before or after the function
+#+begin_src python
+def my_decorator(func):  
+    def wrapper():
+        print('wrapper of decorator')  # ①这里做一通操作
+        func()  # ②调用原函数
+    return wrapper  # ③返回内部函数对象
+
+def greet():
+    print('hello world')
+
+greet = my_decorator(greet)  # 变量 greet 指向了内部函数 wrapper()
+greet()  # 调用 greet() 相当于执行内部函数wrapper
+
+@my_decorator  # @语法糖，相当于greet1 = my_decorator(greet1)
+def greet1():    
+    print('hello world') 
+#+end_src
+
+#+begin_src python
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        func(*args, **kwargs) #此处拿到了被装饰的函数func
+        time.sleep(2)#模拟耗时操作
+        long = time.time() - start
+        print(f'共耗时{long}秒。')
+    return wrapper #返回内层函数的引用
+
+@timer
+def add(a, b):
+    print(a+b)
+
+add(1, 2) #正常调用add
+# 模块加载 ->> 遇到@，执行timer函数，传入add函数 ->> 生成timer.<locals>.wrapper
+# 函数并命名为add，其实是覆盖了原同名函数 ->> 调用add(1, 2) ->> 去执行
+# timer.<locals>.wrapper(1, 2) ->> wrapper内部持有原add函数引用(func)，
+# 调用func(1, 2) ->>继续执行完wrapper函数
+#+end_src
+
+#+begin_src python
+def test1(func):
+    print("enter test1")
+    
+    def wrapper1(*args, **kwargs):
+        print('wrapper, before test1 ...')
+        func(*args, **kwargs)
+        print('wrapper, after test1 ...')
+    return wrapper1 #返回内层函数的引用
+
+def test2(func):
+    print("%s" %("enter test2"))
+    
+    def wrapper2(*args, **kwargs):
+        print('wrapper2, before test2 ...')
+        func(*args, **kwargs)
+        print('wrapper, after test2 ...')
+    return wrapper2 #返回内层函数的引用
+
+@test2
+@test1
+def add(a, b):
+    print('execute original function', a+b)
+
+add(1, 2) #正常调用add
+
+# enter test1
+# enter test2
+# wrapper2, before test2 ...
+# wrapper1, before test1 ...
+# execute original function 3
+# wrapper1, after test1 ...
+# wrapper2, after test2 ...
+
+# 1.代码的执行顺序是从上往下，当遇到@test2时，它的下方(@test1(add(a,b)))并非一个函数，无法进行装饰；
+# 2.接着 @test1 会对add()进行装饰，返回的是 add = test1(add) = wrapper1;
+# 3.第一次装饰结束，此时@test2下方是一个函数了，即已是wrapper1的引用，同理add = test2(wrapper1) = wrapper2；
+# 4.此时，两个装饰器都已经装饰完成。add()进行调用时的顺序是 调用@test2中的wrapper2，运行其中的func()，在func()中调用wrapper1，运行其中的func()(即运行wrapper1）指向原先的add()。
+
+
+# explain: 多个装饰器执行顺序是：从最外层一个装饰器开始，执行到第一个装饰器，再执行函数本身，再执行内层装饰器，再执行外层装饰器
+# 0.add = test2(test1(add)), since test1(add) is not a function now, so decorate the inner one first
+# 1.add = test1(add)=wrapper1=test1.<locals>.wrapper1
+# 2.add = test2(wrapper1)=wrapper2 = test2.<locals>.wrapper2
+# 3.run add, execute test2(wrapper1), namely, run wrapper2, print('before test2'), execute wrapper1
+# 4.execute wrapper1, print('before test1'), execute func = add, add(*args, **kwargs)
+# 5.print('after test1'), finish wrapper1, print('after test1'), finish
+#+end_src
+** Decorate a function with parameters
+*** parameters are passed into the inner wrapper() function
+ #+begin_src python
+def my_decorator(func): # the wrappee is passed into func
+    def wrapper(*args, **kwargs):
+        pritn('wrapper of decorator') # common operation before the func
+        func(*args, **kwargs) # arguments are passed into the func here
+    return wrapper # return the inner function
+
+@my_decorator
+def greet(message):
+    print(message)
+#+end_src
+
+** Decorator with function
+
+*** The decorator is allowed to have arguments
+
+#+begin_src python
+    def repeat(num):
+        def my_decorator(func):
+            def wrapper(*args, **kwargs):
+                for i in range(num):
+                    print('wrapper of decorator')
+                    func(*args, **kwargs)
+            return wrapper
+        return my_decorator
+
+    @repeat
+    def greet(message):
+        print(message)
+
+
+    def type_decorator(**kwargs):
+        """ check the attr of an instance"""
+        def decorator(cls):
+            for key, value in kwargs.item():
+                setattr(cls, key, TypeAssertion(key, value))
+            return cls
+        return decorator
+
+    @type_decorator(brand=str, shares=int, price=float)
+    class Stock:
+        def __init__(self, brand, shares, price):
+            self.brand = brand
+            self.shares = shares
+            self.price = price
+
+   # it is equal to type_decorator(brand=str, shares=int, price=float)(Stock)
+
+ @decorator_1(param_1)
+ @decorator_2(param_2)
+def func(*args, **kwargs):
+  pass
+# which is equal to @decorator_1(param_1)(decorator_2(param_2)(func)                    
+#+end_src
+ 
+*** Keep the metadata of the wrappee function
+ #+begin_src python 
+import functools
+
+def my_decorator(func):
+    @functools.wraps(func) # for copying the metadata of func to the wrapper function
+    def wrapper(*args, **kwargs):
+        print("wrapper of decorator")
+        func(*args, **kwargs)
+    return wrapper
+
+@my_decorator
+def greet(message):
+    print(message)
+ #+end_src
+
+ 
+** A class decorator for functions
+**** it depends on the `__cal__()`, whenever invoke the class to create a instance, the `__call__` will be executed 
+**** the class decorator must implement the `__call__` and `__init__` method
+***** `__init__`: is for receiving the wrappee functions
+***** `__call__`: is for the decoration code and func invoking, the same as the `wrapper function
+*** class decorator without arguments
+#+begin_src python
+ class Count:
+     def __init__(self, func):
+         self.func=func
+         self.num_calls=0
+     def __call__(self, *args, **kwargs):
+         self.num_calls +=1
+         return self.func(*args, **kwargs)
+
+ @Count
+ def example():
+     print('hello')
+#### another example
+class logger(object):
+    def __init__(self,func):
+        self.func = func
+    def __call__(self, *args, **kwargs):
+        print('This is the decoration code')
+        return  self.func(*args, **kwargs)
+
+@logger
+def say(message):
+    print(message)
+ #+end_src
+*** class decorator with arguments
+***** `__init__`: is for receiving args for the class decorator
+***** `__call__`: is for the wrappee function, and implement the decoration code 
+
+#+begin_src python
+class logger(object): # a class decorator with arguments
+    def __init__(self, level='INFO'):
+        self.level = level
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            print('decoration is here')
+            func(*args, **kwargs)
+        return wrapper
+@logger(level='WARNING')
+def say(message):
+    print(message)
+
+
+### another example
+import time
+import functools
+
+class DelayFunc:
+    def __init__(self, duration, func):
+        self.duration = duration
+        self.func = func
+    def __call__(self, *args, **kwargs):
+        print(f'waiting for {self.duration} seconds')
+        time.sleep
+        return self.func(*args, **kwargs)
+    def eager_call(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
+def delay(duration):
+    return functools.partial(DelayFunc, duration)
+
+@delay(duration=2)
+def add(a,b):
+    return a+b
+# delay(duration=2) returns a a partial function
+# call this partial function with add(a, b)
+#+end_src
+*** decorator for a class
+#+begin_src python
+# use a decorator for singleton pattern
+
+instance ={}
+def singleton(cls):
+    def get_instance(*args, **kwargs):
+        cls_name = cls.__name__
+        if not cls_name in instance:
+            instance = cls(*args, **kwargs)
+            instance[cls_name] = instance
+        return instance[cls_name]
+    return get_instance
+
+@singleton
+class User:
+    _instance = None
+    def __init__(self, name):
+        self.name = name
+
+#+end_src
+
+*** Nested decorator
+#+begin_src python
+@decorator_1
+@decorator_2
+@decorator_3
+def func():
+    pass 
+#+end_src
+
+** use cases
+   
+*** ID authentication
+#+begin_src python
+import functools
+def authentication(func)
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        if check_user_logged_in(request):
+            return func(*args, **kwargs)
+    return wrapper
+
+@authentication
+def post_comment(request,...):
+    pass 
+#+end_src
+
+*** timing execution
+#+begin_src python
+import time
+import functools
+def log_execution_time(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_count()
+        res = func(*args, **kwargs)
+    return wrapper
+
+@log_execution_time
+def calculate_similarity(times):
+    pass 
+#+end_src
+
+*** Check the validity of input or attrs
+#+begin_src python
+import functools
+def validation_check(input):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        pass
+
+@validation_check
+def neural_network_training(param1, param2,...):
+    pass 
+#+end_src
+
+*** logging
+    #+begin_src python
+import functools
+def logit(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        pass
+    return wrapper
+
+@logit
+def addition_func(x):
+    pass 
+    #+end_src
+
+** Decorator with parameters
+*** If the decorator has input parameters
+
+#+begin_src python
+import functools
+
+def fixture2(args): # args are for the decorator fixture2
+     def decorator(func):
+         @functools.wraps(func):
+         def wrapper(*args, **kwargs):
+             func(*args, **kwargs)
+         return wrapper
+    return decorator
+
+@fixture2
+def now():
+    pass
+# euqal to: now = fixture2('parameter')(now)
+@fixture2('parameter')
+def now():
+    pass 
+ 
+#+end_src
+** functools.wraps for decorator
+#+begin_src python
+def wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATES):
+    return partial(update_wrapper, wrapped=wrapped, assigned=assigned, updated=updated)
+# WRAPPER_ASSIGNMENTS is the properties that copied to the inneer function 
+#+end_src
+** property
+   #+begin_src python
+   class Student(object):
+       def __init__(self,name):
+           self.name = name
+           self._age = None # do not set name here
+       @ property
+       def age(self):
+           return self._age
+       @age.setter
+       def age(self, value):
+           if not isinstance(value, int):
+               raise ValueError('invalid input, age must be int')
+           self._age = value
+       @age.deleter
+       def age(self):
+           del self._age
+
+   #+end_src
+ 
+* June 15, 2021
+  
+** How to replace a instance method
+   
+*** idea 1: replace the byte code--dangerous
+    #+begin_src python
+    class People:
+        def speak(self):
+            print('hello')
+    def speak(self): # this is a function
+
+    p = People()
+    p.speak.im_func.func_code = speak.func_code
+    # This idea will change all instance method
+    #+end_src
+
+    
+*** idea 2: use the types method - safe
+    #+begin_src python
+    import types
+    class People:
+        def speak(self):
+            print('hello')
+    p = People()
+    p.speak = types.MethodTyps(speak, p)
+    p.speak()
+
+    #+end_src
+
+*** How to invoke a function
+    
+**** method 1: put the method in a class, and make it a static method
+     #+begin_src python
+     import sys
+     class Task:
+         @staicmethod
+         def pre_task():
+     argvs = sys.argv[1:]
+     task = Task()
+     for action in argvs:
+         func = getattr(task, action) # work for static method. or getattr(Task, action)
+         # func_alternative = Task.__dict__.get(action) # the method belongs to the Task instead of task instance
+         func()
+     #+end_src
+
+**** use the global() to retrieve the function
+     #+begin_src python
+     import sys
+     def pre_task():
+         print('hello')
+     action = 'pre_task'
+     action = globals().get(action)()
+     #+end_src
+
+**** use the operator.attrgetter()
+     #+begin_src python
+     import operator
+     class People():
+         def speak(self, dest):
+             pritn(dest)
+     p = People()
+     # Return a callable object that fetches the given attribute(s) from its operand
+     caller = operator.attrgetter('speak')
+     caller(p)
+     #+end_src
+
+     
+**** use the operator.methodcaller
+     #+begin_src python
+     from operator import methodcaller
+     class People:
+         def speak(self, message):
+             print(message)
+     caller = methodcaller("speak", "hello")
+     p  =People()
+     caller(p)
+
+     #+end_src
+
+     
+** convert multiple for loop into one
+   #+begin_src python
+   list1 = range(1, 3)
+   list2 = range(4,6)
+   list3 = range(2,5)
+   for item1 in list1:
+       for item2 in list2:
+           for item3 in list3:
+               print(item1 + item2 + item3)
+
+   # alternatively, we can rewrite the foregoing code as:
+   from itertools import product
+   list1 = range(...)
+   list2 = range(...)
+   ...
+   # Cartesian product of input iterables.  Equivalent to nested for-loops.
+   for item1, item2, item3 in product(list1, list2, list3)
+       print(item3+ item2 + item1)
+   #+end_src
+
+** use print function for logging
+   #+begin_src python
+   with open('test.log', mode='w') s f:
+       print('hello', file=f, flush=True)
+   #+end_src
+
+   
+* Meta class
+  
+** we can use type to create a class
+*** type(): type(name, bases, dict) -> a new type
+**** parameters:
+***** class name, if not given, should pass in ""
+***** parent class in tuple, if no parent, pass in empty tuple (), the default is 'object'
+***** methods to bound, in a
+      #+begin_src python
+      class BaseClass:
+          def talk(self):
+              print('hello')
+      def say(self):
+          print('hi, there')
+
+      # use type to create User class
+      User = type('User', (Baseclass, ), {'name':'user', 'say':say})
+      #+end_src
+#+begin_src python
+>>> type(type)
+<class 'type'>
+
+>>> type(object)
+<class 'type'>
+
+>>> type(int)
+<class 'type'>
+
+>>> type(str)
+<class 'type'>
+
+# 一个实例的类型，是类
+# 一个类的类型，是元类(type)
+# 一个元类的类型，是type
+#+end_src
+
+#+begin_src python
+class BaseClass(type):
+    def __new__(cls, *args, **kwargs):
+        print('in BaseClass')
+        return super().__new__(cls, *args, **kwargs)
+class User(metaclass=BaseClass):
+    def __init__(self, name):
+        self.name= name
+
+user = User("Tom")        
+#+end_src
+*** a class is the instance of a metaclass, when creating a class, it invokes the `__new__()` of the metaclass
+
+#+begin_src python
+class MetaSingleton(type):
+    def __call__(cls, *args, **kwargs):
+        print("cls:{}".format(cls.__name__))
+        print("====1====")
+        if not hasattr(cls, "_instance"):
+            print("====2====")
+            cls._instance = type.__call__(cls, *args, **kwargs)
+        return cls._instance
+
+class User(metaclass=MetaSingleton):
+    def __init__(self, *args, **kw):
+        print("====3====")
+        for k,v in kw:
+            setattr(self, k, v)
+
+>>> u1 = User('wangbm1')
+cls:User
+====1====
+====2====
+====3====
+>>> u1.age = 20
+>>> u2 = User('wangbm2')
+cls:User
+====1====
+>>> u2.age
+20
+>>> u1 is u2
+True            
+#+end_src
+*** In sum, we invoking User(), python will call the `__call__()` of the type class
+*** ` __new__` work like a constructor, thus it returns the object it builds
+*** `__init__` is for initialization, and has no return
+* What is a metaclass: the one that creates class (template for a class)
+** it inherits from the `type`
+** how to create class form a meta class
+*** class TestMetaClass(type):pass 
+*** class TestClass():__metaclass__ = TestMetaClass (can be a function of how to defining the behavior)
+*** class TestClass(metaclass=TestMetaClass): pass
+#+begin_src python
+class TestMetaClass(type):
+    def __new__(cls, *args, **kwargs):
+        print("MetaClass.__new__")
+        self = super().__new__(cls, *args, **kwargs)
+        return self
+
+
+    def __init__(cls, what, bases=None, dict=None):
+        print("MetaClass.__init__")
+        super().__init__(what, bases, dict)
+
+    def __call__(cls, *args, **kwargs):
+        print("MetaClass.__call__")
+        self = super(TestMetaClass, cls).__call__(*args, **kwargs)
+        return self 
+
+
+class TestClass(metaclass=TestMetaClass):
+
+    def __init__(self, *args, **kwargs):
+        print("Class.__init__")
+        super().__init__()
+
+    def __new__(cls, *args, **kwargs):
+        print("Class.__new__")
+        self = super().__new__(cls, *args, **kwargs)
+        return self
+
+a = TestClass() # x.__call__(1, 2) == x(1, 2)
+
+
+# another implementation
+class TestClass():
+    __metaclass__ = TestMetaClass
+
+    def __init__(self, *args, **kwargs):
+        print("class init")
+        super().__init__()
+
+# ************************* function flow *****************
+# 1. MetaClass.__new__: need to new TestClass, an object of TestMetaClass 
+# 2. MetaClass.__init__
+# 3. MetaClass.__call__: call an instance (TestClass is an instance of TestMetaClass) will invoke the __call__ of the type class (TestMetaClass)
+# 4. Class.__new__
+# 5. Class.__init__
+#+end_src
+** C.__class__: return the class that create instance C (can be a instance or a class)
+** C.__bases__: (C.__bases__ return only one) return the parent class of class C.
+
+#+begin_src python
+class Foo(Bar):
+    pass
+
+# 首先判断 Foo 中是否有 __metaclass__ 这个属性？如果有，Python 会在内存中通过 __metaclass__
+# 创建一个名字为 Foo 的类对象（注意，这里是类对象）。如果 Python 没有找到__metaclass__ ，它会继续在
+# Bar（父类）中寻找__metaclass__ 属性，并尝试做和前面同样的操作。如果 Python在任何父类中都找不到
+# __metaclass__ ，它就会在模块层次中去寻找 __metaclass__ ，并尝试做同样的操作。如果还是找不到` metaclass`,
+# Python 就会用内置的 type 来创建这个类对象。
+# 其实 __metaclass__ 就是定义了 class 的行为。类似于 class 定义了 instance 的行为，metaclass 则定义了
+# class 的行为。可以说，class 是 metaclass 的 instance。
+# Pareent class --> Module --> type
+#+end_src
+* Important: when calling a instance, we invoke the `__call__()` of its class
+* When calling a class, we invoke the `__call__()` of the metaclass that creates this class
+
+#+begin_src python
+# StanfordTeacher的元类中的__call__方法也应该做这三件事:
+class Mymeta(type): #只有继承了type类才能称之为一个元类，否则就是一个普通的自定义类
+    def __call__(self, *args, **kwargs): #self=<class '__main__.StanfordTeacher'>
+        #1、调用__new__产生一个空对象obj
+        obj=self.__new__(self) # 此处的self是类StanfordTeacher，必须传参，代表创建一个StanfordTeacher的对象obj
+ 
+        #2、调用__init__初始化空对象obj
+        self.__init__(obj,*args,**kwargs)
+ 
+        #3、返回初始化好的对象obj
+        return obj
+    
+class StanfordTeacher(object,metaclass=Mymeta):
+    school='Stanford'
+ 
+    def __init__(self,name,age):
+        self.name=name
+        self.age=age
+ 
+    def say(self):
+        print('%s says welcome to the Stanford to learn Python' %self.name)
+ 
+t1=StanfordTeacher('lili',18)
+print(t1.__dict__) #{'name': 'lili', 'age': 18}
+
+# 1、产生一个空对象obj
+# 2、调用__init__方法初始化对象obj
+# 3、返回初始化好的obj
+#+end_src
+#+begin_src python
+class Mymeta(type): #只有继承了type类才能称之为一个元类，否则就是一个普通的自定义类
+    n=444
+ 
+    def __new__(cls, *args, **kwargs):
+        obj=type.__new__(cls,*args,**kwargs) # 必须按照这种传值方式
+        print(obj.__dict__)
+        # return obj # 只有在返回值是type的对象时，才会触发下面的__init__
+        return 123
+ 
+    def __init__(self,class_name,class_bases,class_dic):
+        print('run。。。')
+ 
+ 
+class StanfordTeacher(object,metaclass=Mymeta): #StanfordTeacher=Mymeta('StanfordTeacher',(object),{...})
+    n=111
+ 
+    school='Stanford'
+ 
+    def __init__(self,name,age):
+        self.name=name
+        self.age=age
+ 
+    def say(self):
+        print('%s says welcome to the Stanford to learn Python' %self.name)
+  
+print(type(Mymeta)) #<class 'type'>
+# 产生类StanfordTeacher的过程就是在调用Mymeta，而Mymeta也是type类的一个对象，那么Mymeta之所以可以调用，一定是在元类type中有一个__call__方法
+# 该方法中同样需要做至少三件事：
+# class type:
+#     def __call__(self, *args, **kwargs): #self=<class '__main__.Mymeta'>
+#         obj=self.__new__(self,*args,**kwargs) # 产生Mymeta的一个对象
+#         self.__init__(obj,*args,**kwargs)
+#         return obj
+#+end_src
+* 在Python当中，__call__,__new__,__init__三者之间的关系
+#+begin_src python
+# 在类实例化的过程当中，哪个对象加()就寻找产生这个对象的类的__call__方法，只要是__call__方法，一定会做三件事情：
+
+# 第一：调用__new__方法，构造新的对象，相当于Java当中的构造函数.（对象自己的__new__）
+ 
+# 第二：调用__init__方法,去初始化这个对象（对象自己的__init__）
+# 第三：返回这个对象.
+# 注意:__new__更像是其他语言当中的构造函数，必须有返回值，返回值实例化的对象，__init__只是初始化构造函数，必须没有返回值，仅仅只是初始化功能，并不能new创建对象.
+# 也就是说,一个类在实例化的时候实际上是做了三件事情：
+# 第一：触发元类中（造出这个类的类）的__call__方法
+# 第二：通过__new__产生一个空对象
+# 第三：通过__init__初始化这个对象
+# 第四：返回这个对象
+# 类在实例化对象的时候函数的调用顺序依次是:
+# Meta.__call__==>__new__==>__init__
+#+end_src
+* June 17, 2021
+** class object
+
+   #+begin_src python
+      class Dog(object):
+          name='cat'
+          def __init__(self,name):
+              self.name = name
+          @classmethod
+          def eat(self):
+              # "cat is eating"
+              print("%s is eating" % self.name)
+           # if Dog has no attr name, then report error
+           # AttributeError: type object 'Dog' has no attribute 'name'
+
+      d = Dog("wangcai")
+      d.eat()
+
+
+   class Dog(object):
+       def __init__(self,name):
+           self.name = name
+       @staticmethod  # 把eat方法变为静态方法
+       def eat(self):
+           print("%s is eating" %self.name)
+
+   d = Dog("wangcai")
+   d.eat()
+   # TypeError: eat() missing 1 required positional argument: 'self'
+# 说是eat需要一个self参数，但调用时却没有传递，没错，当eat变成静态方法后，再通过实例调用时就不会自动把实例本身当作一个参数传给self了。
+# 想让上面的代码可以正常工作有两种办法
+# 调用时主动传递实例本身给eat方法，即d.eat(d)
+# 在eat方法中去掉self参数，但这也意味着，在eat中不能通过self.调用实例中的其它变量了
+
+class Dog(object):
+    def __init__(self,name):
+        self.name = name
+        self.__food = None
+    @property
+    def eat(self):
+        print("%s is eating %s" %(self.name, self.__food))
+    @eat.setter  # 赋值调用属性，调这个方法
+    def eat(self,food):
+        print("set to food:",food)
+        self.__food = food
+
+d = Dog("wangcai")
+d.eat
+d.eat = "baozi"
+d.eat
+# set to food: ('baozi_a', 'baozi_b')
+d.eat = "baozi_a", "baozi_b"
+
+#+end_src
+
+
+** None and None type
+#+begin_src python
+# None是Python的特殊类型，NoneType对象，它只有一个值None.
+# 它不支持任何运算也没有任何内建方法。
+# None和任何其他的数据类型比较永远返回False。
+# None有自己的数据类型NoneType。
+# 你可以将None复制给任何变量，但是你不能创建其他NoneType对象。
+
+# python对变量是否为None的判断，有三种主要的写法：
+# 第一种是if x is None；
+# 第二种是 if not x：；
+# 第三种是if not x is None（这句这样理解更清晰if not (x is None)） 。
+# 在Python中 None, False, 空字符串”“, 0, 空列表[], 空字典{}, 空元组()都相当于False 。
+
+
+class Dog(object):
+    def __init__(self,name):
+        self.name = name
+    @property
+    def eat(self):
+        print("%s is eating" % self.name)
+
+d = Dog("wangcai")
+print(type(d.eat))
+print(d.eat())
+# TypeError: 'NoneType' object is not callable
+# since the d.eat return `None` instead of a function
+#+end_src
+
+* @classmethod 和@staticmethod
+  
+#+begin_src python
+class Car:
+    def __init__(self, model):
+        self.model = model
+
+    @logging #装饰实例方法，OK
+    def run(self):
+        print("%s is running!" % self.model)
+
+    @logging #装饰静态方法，Failed
+    @staticmethod
+    def check_model_for(obj):
+        if isinstance(obj, Car):
+            print("The model of your car is %s" % obj.model)
+        else:
+            print("%s is not a car!" % obj)
+
+#  @staticmethod装饰器返回的是一个staticmethod对象，而不是callable对象。这是不符
+# 合装饰器要求的（如 传入一个callable对象），自然而然不可在其上方添加其他装饰器。解决方案：
+# 将@staticmethod置前，因为装饰返回一个正常的函数，然后再加上@staticmethod就没问题了
+class Car(object):
+    def __init__(self, model):
+        self.model = model
+
+    @staticmethod
+    @logging  # 在@staticmethod之前装饰，OK
+    def check_model_for(obj):
+        pass
+
+#+end_src
+
+* 内置函数locals()、globals()返回一个字典。区别：前者只读、后者可写。
+
+* Python if/else
+  Python 里的分支代码
+Python 支持最为常见的 if/else 条件分支语句，不过它缺少在其他编程语言中常见的 switch/case 语句。
+
+除此之外，Python 还为 for/while 循环以及 try/except 语句提供了 else 分支，在一些特殊的场景下，它们可以大显身手。
+
+下面我会从 最佳实践、常见技巧、常见陷阱 三个方面讲一下如果编写优秀的条件分支代码。
+
+最佳实践
+1. 避免多层分支嵌套
+如果这篇文章只能删减成一句话就结束，那么那句话一定是“要竭尽所能的避免分支嵌套”。
+
+过深的分支嵌套是很多编程新手最容易犯的错误之一。假如有一位新手 JavaScript 程序员写了很多层分支嵌套，那么你可能会看到一层又一层的大括号：if { if { if { ... }}}。俗称“嵌套 if 地狱（Nested If Statement Hell）”。
+
+但是因为 Python 使用了缩进来代替 {}，所以过深的嵌套分支会产生比其他语言下更为严重的后果。比如过多的缩进层次很容易就会让代码超过 PEP8 中规定的每行字数限制。让我们看看这段代码：
+
+def buy_fruit(nerd, store):
+    """去水果店买苹果
+
+    - 先得看看店是不是在营业
+    - 如果有苹果的话，就买 1 个
+    - 如果钱不够，就回家取钱再来
+    """
+#+begin_src python
+if store.is_open():
+        if store.has_stocks("apple"):
+            if nerd.can_afford(store.price("apple", amount=1)):
+                nerd.buy(store, "apple", amount=1)
+                return
+            else:
+                nerd.go_home_and_get_money()
+                return buy_fruit(nerd, store)
+        else:
+            raise MadAtNoFruit("no apple in store!")
+    else:
+        raise MadAtNoFruit("store is closed!")
+#+end_src
+上面这段代码最大的问题，就是过于直接翻译了原始的条件分支要求，导致短短十几行代码包含了有三层嵌套分支。
+
+这样的代码可读性和维护性都很差。不过我们可以用一个很简单的技巧：“提前结束” 来优化这段代码：
+#+begin_src python
+
+def buy_fruit(nerd, store):
+    if not store.is_open():
+        raise MadAtNoFruit("store is closed!")
+
+    if not store.has_stocks("apple"):
+        raise MadAtNoFruit("no apple in store!")
+
+    if nerd.can_afford(store.price("apple", amount=1)):
+        nerd.buy(store, "apple", amount=1)
+        return
+    else:
+        nerd.go_home_and_get_money()
+        return buy_fruit(nerd, store)
+#+end_src
+“提前结束”指：在函数内使用 return 或 raise 等语句提前在分支内结束函数。比如，在新的 buy_fruit 函数里，当分支条件不满足时，我们直接抛出异常，结束这段这代码分支。这样的代码没有嵌套分支，更直接也更易读。
+
+2. 封装那些过于复杂的逻辑判断
+如果条件分支里的表达式过于复杂，出现了太多的 not/and/or，那么这段代码的可读性就会大打折扣，比如下面这段代码：
+
+# 如果活动还在开放，并且活动剩余名额大于 10，为所有性别为女性，或者级别大于 3
+# 的活跃用户发放 10000 个金币
+#+begin_src python
+if activity.is_active and activity.remaining > 10 and \
+        user.is_active and (user.sex == 'female' or user.level > 3):
+    user.add_coins(10000)
+    return
+#+end_src
+对于这样的代码，我们可以考虑将具体的分支逻辑封装成函数或者方法，来达到简化代码的目的：
+#+begin_src python
+
+if activity.allow_new_user() and user.match_activity_condition():
+    user.add_coins(10000)
+    return
+#+end_src
+事实上，将代码改写后，之前的注释文字其实也可以去掉了。因为后面这段代码已经达到了自说明的目的。至于具体的 什么样的用户满足活动条件？ 这种问题，就应由具体的 match_activity_condition() 方法来回答了。
+
+Hint: 恰当的封装不光直接改善了代码的可读性，事实上，如果上面的活动判断逻辑在代码中出现了不止一次的话，封装更是必须的。不然重复代码会极大的破坏这段逻辑的可维护性。
+
+3. 留意不同分支下的重复代码
+重复代码是代码质量的天敌，而条件分支语句又非常容易成为重复代码的重灾区。所以，当我们编写条件分支语句时，需要特别留意，不要生产不必要的重复代码。
+
+让我们看下这个例子：
+#+begin_src python
+
+# 对于新用户，创建新的用户资料，否则更新旧资料
+if user.no_profile_exists:
+    create_user_profile(
+        username=user.username,
+        email=user.email,
+        age=user.age,
+        address=user.address,
+        # 对于新建用户，将用户的积分置为 0
+        points=0,
+        created=now(),
+    )
+else:
+    update_user_profile(
+        username=user.username,
+        email=user.email,
+        age=user.age,
+        address=user.address,
+        updated=now(),
+    )
+#+end_src
+在上面的代码中，我们可以一眼看出，在不同的分支下，程序调用了不同的函数，做了不一样的事情。但是，因为那些重复代码的存在，我们却很难简单的区分出，二者的不同点到底在哪。
+
+其实，得益于 Python 的动态特性，我们可以简单的改写一下上面的代码，让可读性可以得到显著的提升：
+#+begin_src python
+
+if user.no_profile_exists:
+    profile_func = create_user_profile
+    extra_args = {'points': 0, 'created': now()}
+else:
+    profile_func = update_user_profile
+    extra_args = {'updated': now()}
+
+profile_func(
+    username=user.username,
+    email=user.email,
+    age=user.age,
+    address=user.address,
+    **extra_args
+)
+#+end_src
+当你编写分支代码时，请额外关注由分支产生的重复代码块，如果可以简单的消灭它们，那就不要迟疑。
+
+4. 谨慎使用三元表达式
+三元表达式是 Python 2.5 版本后才支持的语法。在那之前，Python 社区一度认为三元表达式没有必要，我们需要使用 x and a or b 的方式来模拟它。[注]
+
+事实是，在很多情况下，使用普通的 if/else 语句的代码可读性确实更好。盲目追求三元表达式很容易诱惑你写出复杂、可读性差的代码。
+
+所以，请记得只用三元表达式处理简单的逻辑分支。
+
+language = "python" if you.favor("dynamic") else "golang"
+对于绝大多数情况，还是使用普通的 if/else 语句吧。
+
+常见技巧
+1. 使用“德摩根定律”
+在做分支判断时，我们有时候会写成这样的代码：
+
+# 如果用户没有登录或者用户没有使用 chrome，拒绝提供服务
+#+begin_src python
+if not user.has_logged_in or not user.is_from_chrome:
+    return "our service is only available for chrome logged in user"
+#+end_src
+第一眼看到代码时，是不是需要思考一会才能理解它想干嘛？这是因为上面的逻辑表达式里面出现了 2 个 not 和 1 个 or。而我们人类恰好不擅长处理过多的“否定”以及“或”这种逻辑关系。
+
+这个时候，就该 德摩根定律 出场了。通俗的说，德摩根定律就是 not A or not B 等价于 not (A and B)。通过这样的转换，上面的代码可以改写成这样：
+#+begin_src python
+if not (user.has_logged_in and user.is_from_chrome):
+    return "our service is only open for chrome logged in user"
+#+end_src
+怎么样，代码是不是易读了很多？记住德摩根定律，很多时候它对于简化条件分支里的代码逻辑非常有用。
+
+2. 自定义对象的“布尔真假”
+我们常说，在 Python 里，“万物皆对象”。其实，不光“万物皆对象”，我们还可以利用很多魔法方法（文档中称为：user-defined method），来自定义对象的各种行为。我们可以用很多在别的语言里面无法做到、有些魔法的方式来影响代码的执行。
+
+比如，Python 的所有对象都有自己的“布尔真假”：
+
+布尔值为假的对象：None, 0, False, [], (), {}, set(), frozenset(), ... ...
+布尔值为真的对象：非 0 的数值、True，非空的序列、元组，普通的用户类实例，... ...
+通过内建函数 bool()，你可以很方便的查看某个对象的布尔真假。而 Python 进行条件分支判断时用到的也是这个值：
+
+>>> bool(object())
+True
+重点来了，虽然所有用户类实例的布尔值都是真。但是 Python 提供了改变这个行为的办法：自定义类的 __bool__ 魔法方法 （在 Python 2.X 版本中为 __nonzero__）。当类定义了 __bool__ 方法后，它的返回值将会被当作类实例的布尔值。
+
+另外，__bool__ 不是影响实例布尔真假的唯一方法。如果类没有定义 __bool__ 方法，Python 还会尝试调用 __len__ 方法（也就是对任何序列对象调用 len 函数），通过结果是否为 0 判断实例真假。
+
+那么这个特性有什么用呢？看看下面这段代码：
+#+begin_src python
+
+class UserCollection(object):
+
+    def __init__(self, users):
+        self._users = users
+
+
+users = UserCollection([piglei, raymond])
+
+if len(users._users) > 0:
+    print("There's some users in collection!")
+#+end_src
+上面的代码里，判断 UserCollection 是否有内容时用到了 users._users 的长度。其实，通过为 UserCollection 添加 __len__ 魔法方法，上面的分支可以变得更简单：
+#+begin_src python
+
+class UserCollection:
+
+    def __init__(self, users):
+        self._users = users
+
+    def __len__(self):
+        return len(self._users)
+
+
+users = UserCollection([piglei, raymond])
+
+#+end_src
+# 定义了 __len__ 方法后，UserCollection 对象本身就可以被用于布尔判断了
+#+begin_src python
+if users:
+    print("There's some users in collection!")
+#+end_src
+通过定义魔法方法 __len__ 和 __bool__ ，我们可以让类自己控制想要表现出的布尔真假值，让代码变得更 pythonic。
+
+3. 在条件判断中使用 all() / any()
+all() 和 any() 两个函数非常适合在条件判断中使用。这两个函数接受一个可迭代对象，返回一个布尔值，其中：
+
+all(seq)：仅当 seq 中所有对象都为布尔真时返回 True，否则返回 False
+any(seq)：只要 seq 中任何一个对象为布尔真就返回 True，否则返回 False
+假如我们有下面这段代码：
+#+begin_src python
+
+def all_numbers_gt_10(numbers):
+    """仅当序列中所有数字大于 10 时，返回 True
+    """
+    if not numbers:
+        return False
+
+    for n in numbers:
+        if n <= 10:
+            return False
+    return True
+#+end_src
+如果使用 all() 内建函数，再配合一个简单的生成器表达式，上面的代码可以写成这样：
+#+begin_src python
+def all_numbers_gt_10_2(numbers):
+    return bool(numbers) and all(n > 10 for n in numbers)    
+#+end_src
+简单、高效，同时也没有损失可用性。
+
+4. 使用 try/while/for 中 else 分支
+让我们看看这个函数
+#+begin_src python
+：
+
+def do_stuff():
+    first_thing_successed = False
+    try:
+        do_the_first_thing()
+        first_thing_successed = True
+    except Exception as e:
+        print("Error while calling do_some_thing")
+        return
+
+    # 仅当 first_thing 成功完成时，做第二件事
+    if first_thing_successed:
+        return do_the_second_thing()
+#+end_src
+在函数 do_stuff 中，我们希望只有当 do_the_first_thing() 成功调用后（也就是不抛出任何异常），才继续做第二个函数调用。为了做到这一点，我们需要定义一个额外的变量 first_thing_successed 来作为标记。
+
+其实，我们可以用更简单的方法达到同样的效果：
+#+begin_src python
+
+def do_stuff():
+    try:
+        do_the_first_thing()
+    except Exception as e:
+        print("Error while calling do_some_thing")
+        return
+    else:
+        return do_the_second_thing()
+#+end_src
+在 try 语句块最后追加上 else 分支后，分支下的do_the_second_thing() 便只会在 try 下面的所有语句正常执行（也就是没有异常，没有 return、break 等）完成后执行。
+
+类似的，Python 里的 for/while 循环也支持添加 else 分支，它们表示：当循环使用的迭代对象被正常耗尽、或 while 循环使用的条件变量变为 False 后才执行 else 分支下的代码。
+
+常见陷阱
+1. 与 None 值的比较
+在 Python 中，有两种比较变量的方法：== 和 is，二者在含义上有着根本的区别：
+
+==：表示二者所指向的的值是否一致
+is：表示二者是否指向内存中的同一份内容，也就是 id(x) 是否等于 id(y)
+None 在 Python 语言中是一个单例对象，如果你要判断某个变量是否为 None 时，记得使用 is 而不是 ==，因为只有 is 才能在严格意义上表示某个变量是否是 None。
+
+否则，可能出现下面这样的情况：
+#+begin_src python
+class Foo(object):
+    def __eq__(self, other):
+        return True
+
+foo = Foo()
+foo == None
+True
+#+end_src
+
+在上面代码中，Foo 这个类通过自定义 __eq__ 魔法方法的方式，很容易就满足了 == None 这个条件。
+
+所以，当你要判断某个变量是否为 None 时，请使用 is 而不是 ==。
+
+2. 留意 and 和 or 的运算优先级
+看看下面这两个表达式，猜猜它们的值一样吗？
+#+begin_src python
+>>> (True or False) and False
+>>> True or False and False
+#+end_src
+答案是：不一样，它们的值分别是 False 和 True，你猜对了吗？
+
+问题的关键在于：and 运算符的优先级大于 or。因此上面的第二个表达式在 Python 看来实际上是 True or (False and False)。所以结果是 True 而不是 False。
+
+在编写包含多个 and 和 or 的表达式时，请额外注意 and 和 or 的运算优先级。即使执行优先级正好是你需要的那样，你也可以加上额外的括号来让代码更清晰。
+
+* June 22, 2021
+
+** generator
+
+ #+begin_src python 
+ class Fab(object): 
+
+    def __init__(self, max): 
+        self.max = max 
+        self.n, self.a, self.b = 0, 0, 1 
+
+    def __iter__(self): 
+        return self 
+
+    def next(self): 
+        if self.n < self.max: 
+            r = self.b 
+            self.a, self.b = self.b, self.a + self.b 
+            self.n = self.n + 1 
+            return r 
+        raise StopIteration()
+
+ # the previous one is equal to
+ def fab(max): 
+     n, a, b = 0, 0, 1 
+     while n < max: 
+         yield b 
+         # print b 
+         a, b = b, a + b 
+         n = n + 1
+ # yield 的作用就是把一个函数变成一个 generator，带有 yield 的函数不再是一个普通函数，Python 解释器会将其视为一个
+ # generator，调用 fab(5) 不会执行 fab 函数，而是返回一个 iterable 对象！在 for 循环执行时，每次循环都会执行 fab
+ # 函数内部的代码，执行到 yield b 时，fab 函数就返回一个迭代值，下次迭代时，代码从 yield b 的下一条语句继续执行，
+ # 而函数的本地变量看起来和上次中断执行前是完全一样的，于是函数继续执行，直到再次遇到 yield。
+
+ # 一个带有 yield 的函数就是一个 generator，它和普通函数不同，生成一个 generator 看起来像函数调用，但不会执行任何函数代码，
+ # 直到对其调用 next()（在 for 循环中会自动调用 next()）才开始执行。虽然执行流程仍按函数的流程执行，但每执行到一个 yield
+ # 语句就会中断，并返回一个迭代值，下次执行时从 yield 的下一个语句继续执行。看起来就好像一个函数在正常执行的过程中被 yield
+ # 中断了数次，每次中断都会通过 yield 返回当前的迭代值。
+
+ # return 的作用
+ # 在一个 generator function 中，如果没有 return，则默认执行至函数完毕，如果在执行过程中 return，则直接抛出 StopIteration 终止迭代。
+ #+end_src
+
+
+** 包导入
+
+*** 模块内置属性
+****    name   直接运行本模块，   name   值为   main   ；import module，   name   值为模块名字。
+****    file   当前 module的绝对路径
+****    dict   
+****    doc   
+****    package   
+****    path   
+*** 绝对导入：所有的模块import都从“根节点”开始。根节点的位置由sys.path中的路径决定，项目的根目录一般自动在sys.path中。如果希望程序能处处执行，需手动修改sys.
+#+begin_src python
+import sys,os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))#存放c.py所在的绝对路径
+sys.path.append(BASE_DIR)
+from B.B1 import b1#导入B包中子包B1中的模块b1
+
+#+end_src
+* python learning material url
+** TODO https://www.zlovezl.cn/articles/write-solid-python-codes-part-1/
+** TODO https://blog.csdn.net/liuchunming033/category_1348374.html
+** TODO [#B] https://develop.spacemacs.org/ 
+
+
+
+* Descriptor
+#+begin_src python
+class Animal:
+    name = '老虎'
+    unique = 0
+    def __init__(self, name='老虎', age=5):
+        self.name = name
+        self.age = age
+        self.weight = 200
+
+    def eat(self):
+        self.height = 100
+        return '我需要吃东西！'
+
+    @classmethod
+    def sleep(cls):
+        return '我需要睡觉'
+
+class Dog(Animal):
+ 
+    def __init__(self, age):
+        self.age = age
+
+a = Animal()
+d = Dog(8)
+
+# dict_keys(['__module__', 'name', 'unique', '__init__', 'eat', 'sleep', '__dict__', '__weakref__', '__doc__'])
+print(Animal.__dict__.keys())
+print(a.__dict__.keys())     # dict_keys(['name', 'age', 'weight']), it does not include the 'unique' attribute
+print(Dog.__dict__.keys())   # dict_keys(['__module__', '__init__', '__doc__'])
+print(d.__dict__.keys())     # dict_keys(['age'])
+# 实例是可以访问类的成员的，但是类不能访问实例成员; 子类继承父类的类成员和实例成员。
+
+# 总结：对象属性的访问优先级顺序为：
+# ①.实例属性, d.age access the obj attribute
+# ②.类属性, a.unique
+# ③.父类的类属性, a.unique
+# ④.__getattr__()方法
+#+end_src
+** `__getattribute__、__getattr__、__setattr__、__delattr__
+*** __getsttribute__方法：当一个属性被访问的时候发生的行为，称之为“属性拦截器”
+*** Python中只要定义了继承object的类，就默认存在属性拦截器，只不过是拦截后没有进行任何操作，而是直接返回。__getattribute__允许我们在访问对象属性时自定义访问行为，但是使用它特别要小心无限递归的问题。
+*** 重写__getattribute__。需要注意的是重写的方法中不能, 使用对象的点运算符访问属性，会再次调用__getattribute__。可以使用super()方法避免这个问题。return super(Dog, self).__getattribute__(key)
+#+begin_src python
+def __getattribute__(self, key):
+        if key=='sound':
+            print('sound方法被调用了')
+            return self.sound()
+# self.sound will call `__getattribute__ again and it calls `__getattribute__ infinitely.
+#+end_src
+*** 一定要在每一个需要访问的属性里面设置返回值，否则会返回None，一般有两种做法，即返回父类的__getattribute__方法。
+**** return super(Dog, self).__getattribute__(key)这种形式
+**** return object.__getattribute__(self,key)
+** 不要再在__getattribute__方法的定义内部显示使用self.成员, 否则引发死循环
+** `__getattr__, `__setattr___, `__delattr__
+*** __getattr__可以用来在当用户试图访问一个根本不存在（或者暂时不存在）的属性时，来定义类的行为. Automatically return None if not defined
+*** 而__getattr__仅仅针对的是属性，不针对方法，即访问未存在的方法的时候依然还是会报错。
+*** __getattribute__针对的是访问已经存在的（属性和方法）；__getattr__针对的是访问未存在的（属性）。
+*** __getattribute__和__getattr__虽然针对每一个访问的key，一定要有对应的返回值（参见前文），但是返回的东西却不是一样的，即__getattribute__返回父类的__getattribute__函数，而__getattr__返回我希望为未知属性设置的那个值或者是异常信息。
+** __setattr__(self, name, value)
+*** __setattr__方法允许定义为某个属性赋值的时候所发生行为，不管这个属性存在与否，都可以对任意属性的任何变化都定义自己的规则。
+*** 即使在__init__()内的属性赋值也会调用__setattr__方法
+*** 只要是属性被修改或者是赋值，不管这个属性是实例属性、类属性、父类的类属性；亦或者是已经存在的属性、不存在的属性，只要是修改和赋值，都会调用到__steattr__方法。
+*** 关于__setattr__有一点需要说明，不能写成类似self.name = “张三”这样的形式，这样的赋值语句会调用__setattr__方法，这样会让其陷入无限递归，参见前文的__getattribute__方法出现无限递归
+** __delattr__(self, name)
+*** __delattr__用于处理删除属性时的行为。和__setattr__方法要注意无限递归的问题，重写该方法时不要有类似del self.name的写法。
+#+begin_src python
+class Animal(object):
+    run = '我会跑'
+    def die(self):
+        return '我会死'
+class Dog(Animal):
+    color='Blue'
+   def __init__(self, name,age):
+        self.name=name
+        self.age = age
+    def __delattr__(self, key):
+        print('我被删除啦！')
+        super(Dog,self).__delattr__(key)
+       
+    def sound(self):
+        return "汪汪汪"
+ 
+dog=Dog('泰迪',4)
+del dog.age
+#+end_src
+*** __delattr__只能够删除 已经存在的、实例属性，对于不存在的属性和类属性(因为它是属于类的)是不能够删除的。
+* Descriptor
+** 描述符：某个类，只要是内部定义了方法 `__get__,并定义了 _`__set___, _`__delete___ 中的一个或多个
+** 非数据描述器: 仅定义了 __get__() 的描述器称为非数据描述器
+*** 非描述器常用于类的方法，如常见的 staticmethod 和 classmethod，都是其应用
+*** 函数定义了`__get__'方法，所以也是非数据描述符
+** 数据描述器: 如果一个对象定义了 __set__() 或 __delete__()，则它会被视为数据描述器
+** 描述符对象：描述符（即一个类，因为描述符的本质是类）的一个对象，一般是作为其他类对象的属性而存在
+*** 绑定行为：所谓的绑定行为，是指在属性的访问、赋值、删除时还绑定发生了其他的事情，正如前面属性控制三剑客所完成的事情一样；
+*** 托管属性：python描述符是一种创建“托管属性”的方法，即通过描述符（类）去托管另一个类的相关属性，也可以说是类的属性的一个代理。所谓的描述符（描述类）就是专门再创建一个类，让这个类去描述本身那个类的相关属性.
+** 描述符三个函数的定义形式：
+#+begin_src python
+# def __get__(self, instance, owner)
+#      self: 指的是描述符类的实例
+#      instance：指的是使用描述符的那个类的实例，如student。下面的instance一样的意思。
+#      owner：指的是使用描述符的那个类，如Student
+
+# def __set__(self, instance, value)
+# def __delete__(self, instance)
+#+end_src
+** 描述符是一个类属性，必须定义在类的层次上, 而不能单纯的定义为对象属性。
+** 属性的优先访问级别总结:
+*** (1) __getattribute__()， 无条件调用，任何时候都先调用
+*** (2) 实例属性
+*** (3) 类属性
+*** (4) 父类属性
+*** (5) __getattr__() 方法  #如果所有的属性都没有搜索到，则才会调用该函数
+** 实例属性查询优先级：
+*** (1).obj.__getattribute__()
+*** (2).数据描述符
+*** (3).实例的字典
+*** (4).类的字典（4，5排序并不准确，当两者同名且同为类属性时，后声明赋的值，会覆盖前面的赋值，譬如a=4;a=5;执行完成是5，因为程序是从上往下按顺序执行的）
+***  (5).非数据描述符
+*** (6).父类的字典
+*** (7).`__getattr__'
+[[/Users/zhou/Documents/github/notes/python/object-attribute-lookup-v3.png]]
+
+ #+begin_src python
+*** Assuming Class is the class and instance is an instance of Class, evaluating instance.foobar roughly equates to this:
+*** (1).Call the type slot for Class.__getattribute__ (tp_getattro). The default does this: [10]
+*** (2).Does Class.__dict__ have a foobar item that has a __get__ method and is a data descriptor [8]?
+*** (3).If yes, return the result of Class.__dict__['foobar'].__get__(instance, Class). [6]
+*** (4).Does instance.__dict__ have a foobar item in it?
+*** (5).If yes, return instance.__dict__['foobar'].
+*** (6).Does Class.__dict__ have a foobar item that has a __get__ method and is not a data descriptor [9]?
+*** (7).If yes, return the result of Class.__dict__['foobar'].__get__(instance, Class). [6]
+*** (8).Does Class.__dict__ have a foobar item?
+*** (9).If yes, return the result of Class.__dict__['foobar'].
+*** (10).If the attribute still wasn't found, and there's a Class.__getattr__, call Class.__getattr__('foobar').
+** Class attribute lookup:
+# Because classes needs to be able support the classmethod and staticmethod properties [6] when you evaluate something like Class.foobar the lookup is slightly different
+# than what would happen when you evaluate instance.foobar.
+#+begin_src python
+# Because classes needs to be able support the classmethod and staticmethod properties [6] when you evaluate some# thing like Class.
+# foobar the lookup is slightly different than what would happen when you evaluate instance.foobar.
+# Assuming Class is an instance of Metaclass, evaluating Class.foobar roughly equates to this:
+# Call the type slot for Metaclass.__getattribute__ (tp_getattro). The default does this: [11]
+# Does Metaclass.__dict__ have a foobar item that has a __get__ method and is a data descriptor [8]?
+# If yes, return the result of Metaclass.__dict__['foobar'].__get__(Class, Metaclass). [6]
+# Does Class.__dict__ have a foobar item that is a descriptor (of any kind)?
+# If yes, return the result of Class.__dict__['foobar'].__get__(None, Class). [6]
+# Does Class.__dict__ have a foobar item in it?
+# If yes, return Class.__dict__['foobar'].
+# Does Metaclass.__dict__ have a foobar item that is not a data descriptor [9]?
+# If yes, return the result of Metaclass.__dict__['foobar'].__get__(Class, Metaclass). [6]
+# Does Metaclass.__dict__ have any foobar item?
+# If yes, return Metaclass.__dict__['foobar'].
+# If the attribute still wasn't found, and there's a Metaclass.__getattr__, call Metaclass.__getattr__('foobar').
+#+end_src
+*** 
+ #+end_src
+* 实现底层@classmethod
+#+begin_src python
+class NewDefine_classmethod:
+    """
+    使用“描述符”和“装饰器”结合起来，模拟@classmethod
+    """
+    def __init__(self, function):
+        self.function = function
+ 
+    def __get__(self, instance, owner):
+        #对传进函数进行加工,最后返回该函数
+        def wrapper(*args, **kwargs):   #使用不定参数是为了匹配需要修饰的函数参数
+            print("给函数添加额外功能")
+            self.function(owner, *args, **kwargs)
+        return wrapper
+ 
+class Person:
+    name='我有姓名'
+    def __init__(self):
+        pass
+    @NewDefine_classmethod
+    def study_1(cls):
+        print(f'我的名字是：{cls.name},我会搞学习！')
+    @NewDefine_classmethod
+    def study_2(cls,score):
+        print(f'我的名字是：{cls.name},我会搞学习！,而且这次考试考了 {score} 分')
+    
+print(Person.study_1())
+print(Person.study_2(99))
+
+# 第一步：@NewDefine_classmethod本质上是一个“类装饰器”，从它的定义可知，它的定义为
+# class NewDefine_classmethod(function).我们发现，python系统定义的@classmethod其实它的定义也是一样的，如下，
+# class classmethod(function) .怎么样？它们二者的定义是不是一样？
+# 第二步：NewDefine_classmethod本质上又是一个描述符，因为在它的内部实现了__get__协议，由此可见，NewDefine_classmethod是“集装饰器-描述符”于一身的。
+# 第三步：运行过程分析，因为study_1=NewDefine_classmethod（study_1）,所以，study_1本质上是一个NewDefine_classmethod的对象，又因为NewDefine_classmethod本质上是实现了描述符的，所以，study_1本质上是一个定义在类中的描述符属性。
+# 第四步：因为study_1本质上是一个定义在类中的描述符属性。所以在执行Person.study_1的时候，相当于是访问类的描述符属性，所以会进入到描述符的__get__方法。
+# 注意：如果修饰的函数本身是具有返回值的，在__get__里面所定义的wrapper里面一定要返回，即return self.function(owner, *args, **kwargs)。
+#+end_src
+* 实现底层 @staticmethod
+#+begin_src python
+class NewDefine_staticmethod:
+    """
+    使用“描述符”和“装饰器”结合起来，模拟@classmethod
+    """
+    def __init__(self, function):
+        self.function = function
+ 
+    def __get__(self, instance, owner):
+        #对传进函数进行加工,最后返回该函数
+        def wrapper(*args, **kwargs):   #使用不定参数是为了匹配需要修饰的函数参数
+            print("给函数添加额外功能")
+            self.function(*args, **kwargs)
+        return wrapper
+ 
+class Person:
+    name='我有姓名'
+    def __init__(self):
+        pass
+ 
+    @NewDefine_staticmethod
+    def study_1(math,english):
+        print(f'我数学考了 {math} 分,英语考了 {english} 分,我会搞学习！')
+ 
+    @NewDefine_staticmethod
+    def study_2(history,science):
+        print(f'我历史考了 {history} 分,科学考了 {science} 分,我会搞学习！')
+    
+print(Person.study_1(99,98))
+print(Person.study_2(88,89))
+#+end_src
+* 实现底层 @property
+#+begin_src python
+class NewDefine_property:
+    """
+    使用“描述符”和“装饰器”结合起来，模拟@classmethod
+    """
+    def __init__(self, function):
+        self.function = function
+ 
+    def __get__(self, instance, owner):
+        print("给函数添加额外功能")
+        return self.function(instance)
+ 
+class Person:
+    name='我有姓名'
+    def __init__(self):
+        self.__study=100
+ 
+    @NewDefine_property
+    def study_1(self):  #使用property装饰的函数一般不要用“参数”，因为它的主要功能是对属性的封装
+        return self.__study
+ 
+p=Person()
+print(p.study_1)
+# 基本思想和前面分析的还是一样的，但是有几个地方有所区别，需要注意：
+# 第一：@property的目的是封装一个方法，是这个方法可以被当做属性访问
+# 第二：调用的方式与前面有所不同，__get__里面不能再定义wrapper了，否则不会调用wrapper。得不到想要的结果，为什么呢？
+# 因为调用的方式不一样，根据前面的分析，study_1的本质是描述符属性，但是前面的调用均是使用的
+# Person.study_1()或者是p.study_1()的形式，还是当成方法去使用的。但是此处不一样了，直接就是当成属性去使用，
+# p.study_1 ，不再是方法调用，因此wrapper函数得不到调用。所以__get__方法得到了进一步简化。
+#+end_src
+* 描述器和装饰器的区别
+** 同：描述器类和不带参数的装饰器类一样，都传入函数对象作为参数，并返回一个类实例
+** 异：装饰器类返回 callable 的实例，描述器则返回描述器实例
+* 属性调用
+** 整个描述符的核心是`__getattribute__`, 因为对每个属性实例的调用都会用到这个函数。这个方法被用来查找类属性，同时也是属性代理，调用该方法可以进行属性访问
+*** 给定类X和实例x, x.foo由`__getattribute__`转化为：type(x).__dict['foo'].__get__(x, type(x)),描述符是类属性，要用类调用
+**** 对比定义：def `__get__(self, instance, typ=None)->value可知：self = type(x).__dict__['foo'], instance=x, typ=type(x)
+*** 如果是类调用了`__get__`方法，那么将None作为对象传入：X.__dict['foo'].__get__(None, X)
+**** type.__getattribute__() 把 C.x 转化为 C.__dict__['x'].__get__(None, C)。
+*** 非数据描述符的目的只是当实例属性值不存在时，提供一个值。当一个实例的`__dict__`中找不到某个属性时，才去调用`__getattr__`,如果没有找到非数据描述符，那么`__getattribute__`会抛出异常，然后调用`__getattr__`
+** `__getattribute__`调用顺序
+*** 类属性 > 数据描述符 > 实例属性(`__dict__['foo']`) > 非数据描述符 > `__getattr__`
+*** 获取属性的三种方法：(a).instance.attr, (2).instance.__dict__['attr'], (3).getattr(instance, 'attr')
+*** 点操作符的查找逻辑位于 object.__getattribute__() 方法中
+*** 一般情况下， 当调用instance.attr(点属性符）访问属性时，实际是使用instance.__dict__['attr']
+*** `__setitem__()、`__getitem__()、`__delitem__():`__xxxitem__:使用 [''] 的方式操作属性时被调用
+**** `__setitem__:每当属性被赋值的时候都会调用该方法，因此不能再该方法内赋值 self.name = value 会死循环
+**** `__getitem__:当访问不存在的属性时会调用该方法
+**** _`_delitem__:当删除属性时调用该方法
+** 类的方法实际就是一个仅实现了 __get__() 的非资料描述器，所以如果实例 c 中同时定义了名为 foo 的方法和属性，那么 c.foo 访问的是属性而非方法。
+   
+#+begin_src python
+class Descriptor:
+    def __init__(self, var1):
+        print(f"descriptor init: {var1}")
+        self.var1 = var1
+
+    def __set__(self, instance, value):
+        """"""
+        print(f"Assigning {value}")
+
+    def __get__(self, instance, owner=None):
+        """"""
+        print('Getting value')
+        return "descriptor returned value"
+
+
+class Person:
+
+    foo = Descriptor("init")
+    def __init__(self, value):
+        self.foo = value
+
+person = Person('instance') # descriptor init: init, Assigning instance
+print("2", person.foo)      # Getting value, 2 descriptor returned value
+person.foo ='test'          # Assigning test
+print("3", person.foo)      # Getting value
+# 给实例属性赋值时，由于数据描述符比实例属性优先级高，所以赋值被隐藏
+#+end_src
+** 有几点需要牢记的：
+*** 描述器被 __getattribute__() 方法调用,因而，重载 __getattribute__() 可能会妨碍描述器被自动调用
+*** __getattribute__() 仅存在于继承自 object 的新式类之中
+*** object.__getattribute__() 和 type.__getattribute__() 对 __get__() 的调用不一样
+*** 资料描述器总会覆盖实例字典，即资料描述器具有最高优先级
+*** 非资料描述器可能会被实例字典覆盖，即非资料描述器具有最低优先级
+
+** property()是在它所在的类被创建时被调用的，所以传入property的参数是非绑定的函数（不是方法，因为实例没有创建）
+
+* yield from
+** yield from 后面可以跟的可以是“ 生成器 、元组、 列表、range（）函数产生的序列等可迭代对象”
+** yield from  generator, 实际上就是返回另外一个生成器. 而yield只是返回一个元素
+** yield from iterable本质上等于 for item in iterable: yield item
+#+begin_src python
+def foo():
+    print("starting...")
+    while True:
+        res = yield 4
+        print("res:",res)
+g = foo()
+print(next(g))
+print("*"*20)
+print(next(g))
+
+# starting...  
+# 4      
+# ********************
+# res: None     下次调用generator从前面yield的下一句开始
+# 4
+
+# 1.程序开始执行以后，因为foo函数中有yield关键字，所以foo函数并不会真的执行，而是先得到一个生成器g(相当于一个对象)
+# 2.直到调用next方法，foo函数正式开始执行，先执行foo函数中的print方法，然后进入while循环
+# 3.程序遇到yield关键字，然后把yield想想成return,return了一个4之后，程序停止，并没有执行赋值给res操作，此时next(g)语句执行完成，所以输出的前两行（第一个是while上面的print的结果,第二个是return出的结果）是执行print(next(g))的结果，
+# 4.程序执行print("*"*20)，输出20个*
+# 5.又开始执行下面的print(next(g)),这个时候和上面那个差不多，不过不同的是，这个时候是从刚才那个next程序停止的地方开始执行的，也就是要执行res的赋值操作，这时候要注意，这个时候赋值操作的右边是没有值的
+#（因为刚才那个是return出去了，并没有给赋值操作的左边传参数），所以这个时候res赋值是None,所以接着下面的输出就是res:None,
+# 6.程序会继续在while里执行，又一次碰到yield,这个时候同样return 出4，然后程序停止，print函数输出的4就是这次return出的4.
+
+# 到这里你可能就明白yield和return的关系和区别了，带yield的函数是一个生成器，而不是一个函数了，这个生成器有一个函数就是next函数，next就相当于“下一步”生成哪个数，这一次的next开始的地方是接着上一次的next停止的地方执行的，所以调用next的时候，
+# 生成器并不会从foo函数的开始执行，只是接着上一步停止的地方开始，然后遇到yield后，return出要生成的数，此步就结束。
+
+#+end_src
+
+#+begin_src python
+def foo():
+    print("starting...")
+    while True:
+        res = yield 4 # 下一句是赋值
+        print("res:",res)
+g = foo()
+print(next(g))
+print("*"*20)
+print(g.send(7)) 
+
+# starting...
+# 4
+# ********************
+# res: 7
+# 4
+
+# send是发送一个参数给res的，因为上面讲到，return的时候，并没有把4赋值给res，下次执行的时候只好继续执行赋值操作，只好赋值为None了，而如果用send的话，开始执行的时候，
+# 先接着上一次（return 4之后）执行，先把7赋值给了res,然后执行next的作用，遇见下一回的yield，return出结果后结束。
+
+#+end_src
+** yield from 替代内层for循环
+*** 如果生成器函数需要产出另一个生成器生成的值，传统的解决方法是使用嵌套的for循环
+#+begin_src python
+def chain(*iterables):
+    for it in iterables:
+        for i in it:
+            yield i
+
+s = 'ABC'
+t = tuple(range(3))
+# chain 生成器函数把操作依次交给接收到的各个可迭代对象处理。
+list(chain(s, t))
+#+end_src
+#+begin_src python
+def chain(*iterables):
+    for i in iterables:
+        yield from i
+list(chain(s, t))
+
+# yield from 完全代替了内层的 for 循环。
+# yield from x 表达式对 x 对象所做的第一件事是，调用 iter(x)，从中获取迭代器。因此，x 可以是任何可迭代的对象。
+
+#+end_src
+
+#+begin_src python
+# 我们有一个嵌套型的序列，想将它扁平化处理为一列单独的值
+from collections import Iterable
+ 
+def flatten(items, ignore_types=(str, bytes)):
+    for x in items:
+        if isinstance(x, Iterable) and not isinstance(x, ignore_types):
+            yield from flatten(x)
+        else:
+            yield x
+ 
+items = [1, 2, [3, 4, [5, 6], 7], 8]
+for x in flatten(items):
+    print(x)
+# collections.Iterable是一个抽象基类，我们用isinstance(x, Iterable)检查某个元素是否是可迭代的.如果是的话,那么就用yield from将这个可迭代对象作为一种子例程进行递归。最终返回结果就是一个没有嵌套的单值序列了。    
+#+end_src
+
+#+begin_src python
+# 利用一个Node类来表示树结构
+class Node:
+    def __init__(self, value):
+        self._value = value
+        self._children = []
+ 
+    def __repr__(self):
+        return 'Node({!r})'.format(self._value)
+ 
+    def add_child(self, node):
+        self._children.append(node)
+ 
+    def __iter__(self):
+        return iter(self._children)
+ 
+    def depth_first(self):
+        yield self
+        for c in self:
+            yield from c.depth_first()
+ 
+if __name__ == '__main__':
+    root = Node(0)
+    child1 = Node(1)
+    child2 = Node(2)
+    root.add_child(child1)
+    root.add_child(child2)
+    child1.add_child(Node(3))
+    child1.add_child(Node(4))
+    child2.add_child(Node(5))
+    for ch in root.depth_first():
+        print(ch)
+
+# __iter__代表一个Pyton的迭代协议，返回一个迭代器对象,就能迭代了
+# depth_frist返回一个生成器，仔细体会其中的yield与 yield from用法        
+#+end_src
+
+
+#+begin_src python
+# 我们都知道，在使用yield生成器的时候，如果使用for语句去迭代生成器，则不会显式的出发StopIteration异常，而是自动捕获
+# StopIteration异常，所以如果遇到return，只是会终止迭代，而不会触发异常，故而也就没办法获取return的值。
+def my_generator():
+    for i in range(5):
+        if i==2:
+            return '我被迫中断了'
+        else:
+            yield i
+ 
+def main(generator):
+    try:
+        # 迭代到2的时候遇到return语句，隐式的触发了StopIteration异常，就终止迭代了，但是在程序中不会显示出来。
+        for i in generator:  #不会显式触发异常，故而无法获取到return的值
+            print(i)
+    except StopIteration as exc:
+        print(exc.value)
+ 
+g=my_generator()  #调用
+#+end_src
+#+begin_src python
+def my_generator():
+    for i in range(5):
+        if i==2:
+            return '我被迫中断了'
+        else:
+            yield i
+ 
+def wrap_my_generator(generator):  #定义一个包装“生成器”的生成器，它的本质还是生成器
+    result=yield from generator    #自动触发StopIteration异常，并且将return的返回值赋值给yield from表达式的结果，即result
+    print(result)
+ 
+def main(generator):
+    for j in generator:
+        print(j)
+ 
+g=my_generator()
+wrap_g=wrap_my_generator(g)
+# 从上面的比较可以看出，yield from具有以下几个特点：
+# （1）上面的my_generator是原始的生成器，main是调用方，使用yield的时候，只涉及到这两个函数，即“调用方”与“生成器（协程函数）”是直接进行交互的，不涉及其他方法，即“调用方——>生成器函数(协程函数)”；
+# （2）在使用yield from的时候，多了一个对原始my_generator的包装函数，然后调用方是通过这个包装函数（后面会讲到它专有的名词）来与生成器进行交互的，即“调用方——>生成器包装函数——>生成器函数(协程函数)”；
+# （3）yield from iteration结构会在内部自动捕获 iteration生成器的StopIteration 异常。这种处理方式与 for 循环处理 StopIteration 异常的方式一样。而且对 yield from 结构来说，
+# 解释器不仅会捕获 StopIteration 异常，还会把return返回的值或者是StopIteration的value 属性的值变成 yield from 表达式的值，即上面的result。
+#+end_src
+
+* magic method
+
+#+begin_src python
+# __missing__(self, i): what to do when dict key i is missing
+# __contains__(self, i): Behaviour for in and not in operators, value in self, value not in self
+# __iter__(self): returns the iterator object itself, obj with __iter__ is iterable
+# __next__(self): either return the next item or must raise StopIteration. Notes, iterator has both __iter__ and __next__ methods
+# __index__(self): Called by x[self], 当对象是被应用在切片表达式中时，实现整形强制转换, return an int
+# __setattr__(self, name, val): called by self.name = val
+# __getattribute__(self, name):  Called by self.name
+# __getattr__(self, name): called when self.name does not exist
+# __delattr__(self, name):  Called by del self.name
+# __getitem__(self,key): Called by self[key], it is important to slicing
+# __setitem__(self, key, val): Called by self[key] = val
+# __delitem__(self, key): called by del self.key
+# __concat__(self, value):	self + other	连接两个对象时
+# __call__(self [,...]):	self(args)	“调用”对象时
+# __enter__(self):	with self as x:	with 语句环境管理
+# __exit__(self, exc, val, trace):	with self as x:	with 语句环境管理
+
+# Note:
+# 1. An object can be iterated over with "for" if it implements __iter__() or __getitem__().
+# 2. An object can function as an iterator if it implements next().
+#+end_src
+
+* exceptional flow control
+#+begin_src python
+try:
+    statements
+except (tuple_of_errors): # can have multiple
+    statements
+else: # optional no exceptions
+    statements
+finally: # optional all circumstances
+    statements
+#+end_src
+
+#+begin_src python
+# common exceptions
+# AsserionError: Assert statement failed
+# AttributeError: Class attribute assignment or reference failed
+# IOErro: Failed I/O operation Failed module import Subscript out of range Dictionary key not found Ran out of memory
+# ImportError: Failed module import
+# IndexError: Subscript out of range
+# KeyError: Dictionary key not found
+# MemoryError: Ran out of memory
+# NameError: Name not found
+# TypeError: Value of the wrong type
+# ValueError: Right type but wrong value
+#+end_src
+
+* July 13, 2021
+** jupyter-lab cannot find my env
+
+** solutions
+   - Assuming your conda-env is named cenv, it is as simple as :
+   - conda activate cenv
+   - (cenv)$ conda install ipykernel
+   - (cenv)$ ipython kernel install --user --name=<any_name_for_kernel>
+   - (cenv($ conda deactivate
+   - If you restart your jupyter notebook/lab you will be able to see the new kernel available.
+   - PS: If you are using virtualenv etc. the above steps hold good.
+
+ links: https://jupyter.org/install
+
+
+** Machine learning course links
+*** TODO https://speech.ee.ntu.edu.tw/~hylee/mlds/2018-spring.html
+*** TODO statistics review: https://zhuanlan.zhihu.com/p/70034585
+*** python tutorials
+**** TODO https://blog.csdn.net/liuchunming033/category_1348374.html
+**** TODO vis training and loss: https://machinelearningmastery.com/learning-curves-for-diagnosing-machine-learning-model-performance/, https://blog.csdn.net/bbbeoy/article/details/113503988, https://oldpan.me/archives/how-to-use-tricks-to-train-network
+*** pytorch tutorials:
+**** https://blog.csdn.net/u012436149/category_9268433.html?spm=1001.2014.3001.5482
+**** https://blog.csdn.net/qq_27825451/article/details/96837905
+**** https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
+*** Design patterns tutorials:
+**** https://python-web-guide.readthedocs.io/zh/latest/design/design.html#the-fctory-pattern
+**** https://refactoringguru.cn/design-patterns/abstract-factory
+*** tensorflow tutorials
+**** https://blog.csdn.net/u012436149/category_9267152_2.html
+*** XAI vis
+**** https://github.com/interpretml/interpret
+* python attribute lookup order
+** https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/#object-attribute-lookup
+** 

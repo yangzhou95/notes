@@ -1,0 +1,12 @@
+* sklearn notes
+
+
+
+
+[[file:./sklearn.jpeg][model selection in sklearn]]
+# org-toggle-inline-images (C-c C-x C-v) to display images 
+[[file:./sklearn_feature_flow.jpeg][data pipeline in machine learning with sklearn.]]
+ 
+* sklearn dataset
+  
+** 

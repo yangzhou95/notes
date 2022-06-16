@@ -1,0 +1,306 @@
+* Dec 28
+
+** conv2d的参数及含义
+- in_channels(int): number of channels in the input image
+- out_channels(int): number of channels produced by the convolution
+- kernel_size (int/tuple): size of convolving kernel
+- stride (int/tuple, optional): stride of the convolution, default=1
+- padding (int/tuple): default:0, zero-padding added to both sides of the input
+- dilation: spacing between kernel elements, default:1
+- groups: int, default:1, number of blocked connections from input channels to output channnels
+- bias: default: true, if true, adds a learnable bias to the output
+
+** pytorch如何微调fine tuning
+在加载了预训练模型参数之后，需要finetuning模型，可以使用不同的方式finetune
+- 局部微调：加载了模型参数后，只想调节最后几层，其它层不训练，也就是不进行梯度计算，pytorch提供的requires_grad使得对训练的控制变得非常简单
+#+BEGIN_SRC python
+model = torchvision.models.resnet18(pretrained=True)
+for param in model.parameters():
+    param.requires_grad = False
+
+# 替换最后的全连接层， 改为训练100类
+# 新构造的模块的参数默认requires_grad为True
+model.fc = nn.Linear(512, 100)
+ 
+# 只优化最后的分类层
+optimizer = optim.SGD(model.fc.parameters(), lr=1e-2, momentum=0.9)
+全局微调：对全局微调时，只不过我们希望改换过的层和其他层的学习速率不一样，这时候把其它层和新层在optimizer中单独赋予不同的学习速率。
+ignored_params = list(map(id, model.fc.parameters()))
+base_params = filter(lambda p: id(p) not in ignored_params,
+                     model.parameters())
+ 
+optimizer = torch.optim.SGD([
+            {'params': base_params},
+            {'params': model.fc.parameters(), 'lr': 1e-3}
+            ], lr=1e-2, momentum=0.9)
+#+END_SRC
+
+** pytorch使用多gpu
+
+- model.gpu() 把模型放在gpu上
+- model = nn.DataParallel(model) 。DataParallel并行的方式，是将输入一个batch的数据均分成多份，分别送到对应的GPU进行计算，各个GPU得到的梯度累加。与Module相关的所有数据也都会以浅复制的方式复制多份，在此需要注意，在module中属性应该是只读的。
+对模型和相应的数据进行.cuda()处理，可以将内存中的数据复制到gpu显存中去
+
+#+BEGIN_SRC python
+model = Model(input_size, output_size)
+if torch.cuda.device_count() > 1:
+  print("Let's use", torch.cuda.device_count(), "GPUs!")
+  # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+  model = nn.DataParallel(model)
+ 
+if torch.cuda.is_available():
+   model.cuda()
+#+END_SRC
+
+** torch.nn
+- torch.nn：核心数据结构是Module,抽象的概念，既可以表示神经网络某个层layer，也可以表示一个包含很多层的神经网络。常见做法是继承nn.Module,编写自己的层。
+
+- 自定义层必须继承nn.Module，并且在其构造函数中需调用nn.Module的构造函数，super(xx,self).__init__()
+- 在构造函数__init__中必须自定义可学习的参数，并封装成Parameter
+- forward函数实现前向传播过程，其输入可以是一个或者多个tensor。无需写反向传播函数，nn.Module能够利用autograd自动实现反向传播，这比function简单的多
+- Module中可学习参数可以通过named_parameters()或者parameters()返回迭代器，前者会给每个parameter附上名字，使其更具有辨识度。
+- pytorch实现了大部分的layer,这些layer都继承于nn.Module
+  - nn.conv2d卷积层
+  - AvgPool,Maxpool,AdaptiveAvgPool
+  - TransposeConv逆卷积
+  - nn.Linear全连接层
+  - nn.BatchNorm1d(1d,2d,3d)
+  - nn.dropout
+  - nn.ReLU
+  - nn.Sequential
+
+#+BEGIN_SRC python
+# Sequential的三种写法
+net1 = nn.Sequential()
+net1.add_module('conv', nn.Conv2d(3, 3, 3))
+net1.add_module('batchnorm', nn.BatchNorm2d(3))
+net1.add_module('activation_layer', nn.ReLU())
+ 
+net2 = nn.Sequential(
+        nn.Conv2d(3, 3, 3),
+        nn.BatchNorm2d(3),
+        nn.ReLU()
+        )
+ 
+from collections import OrderedDict
+net3= nn.Sequential(OrderedDict([
+          ('conv1', nn.Conv2d(3, 3, 3)),
+          ('bn1', nn.BatchNorm2d(3)),
+          ('relu1', nn.ReLU())
+        ]))
+print('net1:', net1)
+print('net2:', net2)
+print('net3:', net3)
+#+END_SRC
+
+- nn.ModuleList（），可以包含几个子module，可以像list一样使用它，但不能直接把输入传给MuduleList
+- nn.LSTM(4,3,1) 输入向量4维，隐藏元3,1层   nn.LSTMCell(4,3) 对应层数只能是一层
+- nn.Embedding(4,5)4个词，每个词使用5个向量表示损失函数也是nn.Module的子类。nn.CrossEntropLoss()     loss = criterion(score,label)
+- torch.optim 将深度学习常用优化方法全部封装在torch.optim中，所有优化方法继承基类optim.Optimizer，并实现了自己的优化步骤
+
+#+BEGIN_SRC python
+optimizer = optim.SGD(param=net.parameters(),lr=1)
+optimizer.zero_grad() #梯度清零，等价于net.zero_grad()
+input = t.randn(1,3,32,32)
+output = net(input)
+output.backward(output)
+optimizer.step()
+#+END_SRC
+
+** 对不同网络设置不同学习率
+#+BEGIN_SRC python
+# 为不同子网络设置不同的学习率，在finetune中经常用到
+# 如果对某个参数不指定学习率，就使用最外层的默认学习率
+optimizer =optim.SGD([
+                {'params': net.features.parameters()}, # 学习率为1e-5
+                {'params': net.classifier.parameters(), 'lr': 1e-2}
+            ], lr=1e-5)
+为全连接设置较大学习率，其余层设置较小学习率
+#+END_SRC
+
+#+BEGIN_SRC python
+# 只为两个全连接层设置较大的学习率，其余层的学习率较小
+special_layers = nn.ModuleList([net.classifier[0], net.classifier[3]])
+special_layers_params = list(map(id, special_layers.parameters()))
+base_params = filter(lambda p: id(p) not in special_layers_params,
+                     net.parameters())
+ 
+optimizer = t.optim.SGD([
+            {'params': base_params},
+            {'params': special_layers.parameters(), 'lr': 0.01}
+        ], lr=0.001 )
+#+END_SRC
+
+调整学习率的方法，两种
+- 修改optimizer.param_groups中对应的学习率
+- 新建优化器
+#+BEGIN_SRC python
+# 方法1: 调整学习率，新建一个optimizer
+old_lr = 0.1
+optimizer1 =optim.SGD([
+                {'params': net.features.parameters()},
+                {'params': net.classifier.parameters(), 'lr': old_lr*0.1}
+            ], lr=1e-5)
+ 
+# 方法2: 调整学习率, 手动decay, 保存动量
+for param_group in optimizer.param_groups:
+    param_group['lr'] *= 0.1 # 学习率为之前的0.1倍
+nn.functional:   nn中大多数layer，在function中都有一个与之相对应的函数。
+#+END_SRC
+
+
+** nn.functional中的函数和nn.Module主要区别：
+- nn.Module实现的layers是一个特殊的类，都是有class layer(nn.Module)定义，会自动提取可学习的参数
+- nn.functional中的函数更像是纯函数，由def function(input)定义
+- 也就是说如果模型有可学习的参数，最好用nn.Module否则使用哪个都可以，二者在性能上没多大差异，
+- 对于卷积，全连接等具有可学习参数的网络建议使用nn.Module
+- 激活函数（ReLU,sigmoid,tanh），池化等可以使用functional替代。对于不具有可学习参数的层，将他们用函数代替，这样可以不用放在构造函数__init__中。
+ 
+*** nn.init，为初始化专门设计
+ 
+** 将Module放在gpu上运行只需两步：分别将模型与数据放在gpu上
+- model=model.cuda()  #将模型的所有参数转到gpu
+- input.cuda()   #将输入数据也放置到GPU上
+ 
+*** 如何在多个gpu上并行计算,pytorch提供 了两个函数，可实现简单高效的并行gpu计算
+- nn.parallel.data_parallel(module, inputs, device_ids=None, output_device=None, dim=0, module_kwargs=None)
+- class torch.nn.DataParallel(module, device_ids=None, output_device=None, dim=0)
+- 通过device_ids参数可以指定在哪些gpu上优化
+ 
+** nn.Module与autograd的区别：
+- autograd.Function利用了Tensor对autograd技术的扩展，为autograd实现了新的运算op，不仅要实现前向传播还要手动实现反向传播
+- nn.Module利用了autograd技术，对nn的功能进行扩展，实现了深度学习中更多的层。只需实现前向传播功能，autograd即会自动实现反向传播
+- nn.functional是一些autograd操作的集合，是经过封装的函数
+ 
+ 
+** pytorch常用工具模块
+- Dataset。数据集对象被抽象为Dataset类，自定义需要继承Dataset类，并实现两个方法：
+- __getitem__:返回一条数据，或一个样本。obj[idx]等价于obj.__getitem__(idex)
+- __len__:返回样本数量。len(obj)等价于obj.__len__()
+- Dataset只负责数据的抽象，一次调用__getitem__只返回一个样本。若对batch操作或者对数据shuffle和并行加速，需要使用DataLoader
+  - 可视化
+  - gpu加速
+ 
+** torchvision
+视觉工具包，提供了很多视觉图像处理的工具，其中transforms模块提供了对PIL Image对象和Tensor对象的常用操作。主要包含三部分：
+- models：提供深度学习中各种经典网络的网络结构以及预训练好的模型，包括AlexNet、VGG系列、ResNet系列、Inception系列等。
+- datasets： 提供常用的数据集加载，设计上都是继承torhc.utils.data.Dataset，主要包括MNIST、CIFAR10/100、ImageNet、COCO等。
+- transforms：提供常用的数据预处理操作，主要包括对Tensor以及PIL Image对象的操作。
+ 
+ 
+** PIL Image的操作包括
+- Scale:调整图片大小，长宽比保持不变
+- CenterCrop,RandomCrop,RandomResizedCrop : 裁剪图片
+- Pad：填充
+- ToTensor: 将PIL Image对象转成Tensor，会自动将[0,255]归一化至[0,1]
+ 
+*** 对Tensor的操作包括：
+- Normaliza: 标准化，即减均值，除以标准差
+- ToPILImage: 将Tensor转为PIL Image对象
+ 
+如果要对图片进行多个操作，可通过Compose函数将这些操作拼接起来，类似于nn.Sequential。
+#+BEGIN_SRC python
+transform = T.Compose([
+    T.Resize(224), # 缩放图片(Image)，保持长宽比不变，最短边为224像素
+    T.CenterCrop(224), # 从图片中间切出224*224的图片
+    T.ToTensor(), # 将图片(Image)转成Tensor，归一化至[0, 1]
+    T.Normalize(mean=[.5, .5, .5], std=[.5, .5, .5]) # 标准化至[-1, 1]，规定均值和标准差
+])
+#+END_SRC
+
+**** ImageFolder
+ImageFolder假设所有的文件按文件夹保存，每个文件夹下存储同一个类别图片，文件夹名为类名，其构造函数如下：
+#+BEGIN_SRC python
+ImageFolder(root, transform=None, target_transform=None, loader=default_loader)
+#+END_SRC
+
+- root：在root指定的路径下寻找图片
+- transform：对PIL Image进行的转换操作，transform的输入是使用loader读取图片的返回对象
+- target_transform：对label的转换
+- loader：给定路径后如何读取图片，默认读取为RGB格式的PIL Image对象
+ 
+** DataLoader
+DataLoader函数定义如下：对batch的数据进行操作，同时还需要对数据进行shuffle和并行加速等。
+DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, num_workers=0, collate_fn=default_collate, pin_memory=False, drop_last=False)
+- dataset：加载的数据集(Dataset对象)
+- batch_size：batch size
+- shuffle:：是否将数据打乱
+- sampler： 样本抽样，后续会详细介绍
+- num_workers：使用多进程加载的进程数，0代表不使用多进程
+- collate_fn： 如何将多个样本数据拼接成一个batch，一般使用默认的拼接方式即可
+- pin_memory：是否将数据保存在pin memory区，pin memory中的数据转到GPU会快一些
+- drop_last：dataset中的数据个数可能不是batch_size的整数倍，drop_last为True会将多出来不足一个batch的数据丢弃
+
+** tensorboard
+tensorboard:同时Tensorboard也是一个相对独立的工具，只要用户保存的数据遵循相应的格式，tensorboard就能读取这些数据并进行可视化。这里我们将主要介绍如何在PyTorch中使用tensorboardX^1进行训练损失的可视化。 TensorboardX是将Tensorboard的功能抽取出来，使得非TensorFlow用户也能使用它进行可视化，几乎支持原生TensorBoard的全部功能。
+tensorboardX的使用非常简单。首先用如下命令启动tensorboard：
+tensorboard --logdir <your/running/dir> --port <your_bind_port>
+ 
+pytorch数据增加一个维度用什么函数：unsequeeze()
+
+
+** 模型保存与加载
+
+有两种方式：
+#+BEGIN_SRC python
+# 保存整个网络
+torch.save(net, PATH) 
+# 加载整个网络
+model_dict=torch.load(PATH)
+#--------------------------------------------------
+# 保存网络中的参数, 速度快，占空间少
+torch.save(net.state_dict(),PATH)
+# 加载保存的部分参数，前提是model需要先定义
+model_dict=model.load_state_dict(torch.load(PATH))
+#+END_SRC
+
+然而，在实验中往往需要保存更多的信息，比如优化器的参数，那么可以采取下面的方法保存：
+
+#+BEGIN_SRC python
+
+torch.save({'epoch': epochID + 1, 'state_dict': model.state_dict(), 'best_loss': lossMIN,
+'optimizer': optimizer.state_dict(),'alpha': loss.alpha, 'gamma': loss.gamma},
+checkpoint_path + '/m-' + launchTimestamp + '-' + str("%.4f" % lossMIN) + '.pth.tar')
+#+END_SRC
+以上包含的信息有，epochID, state_dict, min loss, optimizer, 自定义损失函数的两个参数；格式以字典的格式存储。
+
+加载的方式：
+
+#+BEGIN_SRC python
+def load_checkpoint(model, checkpoint_PATH, optimizer):
+    if checkpoint != None:
+        model_CKPT = torch.load(checkpoint_PATH)
+        model.load_state_dict(model_CKPT['state_dict'])
+        print('loading checkpoint!')
+        optimizer.load_state_dict(model_CKPT['optimizer'])
+    return model, optimizer
+#+END_SRC
+
+
+其他的参数可以通过以字典的方式获得
+
+但是，但是，我们可能修改了一部分网络，比如加了一些，删除一些，等等，那么需要过滤这些参数，加载方式：
+#+BEGIN_SRC python
+def load_checkpoint(model, checkpoint, optimizer, loadOptimizer):
+    if checkpoint != 'No':
+        print("loading checkpoint...")
+        model_dict = model.state_dict()
+        modelCheckpoint = torch.load(checkpoint)
+        pretrained_dict = modelCheckpoint['state_dict']
+        # 过滤操作
+        new_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict.keys()}
+        model_dict.update(new_dict)
+        # 打印出来，更新了多少的参数
+        print('Total : {}, update: {}'.format(len(pretrained_dict), len(new_dict)))
+        model.load_state_dict(model_dict)
+        print("loaded finished!")
+        # 如果不需要更新优化器那么设置为false
+        if loadOptimizer == True:
+            optimizer.load_state_dict(modelCheckpoint['optimizer'])
+            print('loaded! optimizer')
+        else:
+            print('not loaded optimizer')
+    else:
+        print('No checkpoint is included')
+    return model, optimizer
+#+END_SRC

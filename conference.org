@@ -1,0 +1,21 @@
+* Conference lists
+** conference in medical image processing
+*** Journal
+****  TMI: IEEE Transactions on Medical Imaging: ieeexplore.ieee.org
+
+****  Medical Image Analysis: www.journals.elsevier.com
+
+*** conference
+    
+****  MICCAI: International Conference on Medical Image Computing and Computer Assisted Intervention:www.miccai2019.org
+  
+  
+**** IPMI: Information Processing in Medical Imaging: ipmi2019.cse.ust.hk
+  
+**** IEEE International Symposium on Biomedical Imaging:biomedicalimaging.org
+
+**** SPIE Medical Imaging: spie.org
+  
+****  The International Conference on Medical Imaging with Deep Learning (MIDL): https://www.midl.io/
+
+*** competitions:grand-challenge.org

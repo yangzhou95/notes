@@ -1,0 +1,404 @@
+* flyweight
+#+begin_src python
+import json
+from typing import Dict
+class Flyweight():
+""" the flyweight stores a common portion of the states (intrinsic) that
+belongs to multiple real business entities. The flyweight accepts the rest
+of the states (extrinsic, unique for each entity) via its method parameters"""
+    def __init__(self, shared_state:str)->None: #shared_state: 3-value list
+        self._shared_state = shared_state #intrinsic: shared by multiple objects
+
+    def operation(self, unique_state:str)->None:
+        """ state passed to Flyweight's method is extrinsic"""
+        s = json.dumps(self._shared_state)
+        u = json.dumps(unique)
+
+class FlyweightFactory():
+    """The flyweightFactory creates and manages the flyweight objects. 
+    It ensures that flyweights are shared correctly. when the client requests
+    a flyweight, the factory either returns an existing instance or creates
+    a new one, if it doesn't exist yet."""
+    # intrinsic: shared, invariant; extrinsic: variant
+    # singleton: allow only one FlyweightFacotry
+    _flyweights:Dict[str, Flyweight] = {}
+    def __init__(self, initial_flyweights:List[List])->None:
+        for state in initial_flyweights: # state:3-value list
+            self._flyweights[self.get_key(state)] = Flyweight(state)
+    def get_key(self, state:List)->str: # convert 3-value list to a str
+        return "_".join(sorted(state))
+    def get_flyweight(self, shared_state:List)->Flyweight: # shared_state: 3-value list
+        key = self.get_key(shared_state)
+        if not self._flyweights.get(key):
+            print("FlyweightFacotry: Cann't find a flyweight, creating a new one.")
+            self._flyweights[key] = Flyweight(shared_state)
+        else:
+            print("FlyweightFacotry: reusing existing flyweight")
+        return self._flyweights[key]
+
+def add_car_to_police_database(factory: FlyweightFacotry, plates:str, owner: str,
+                               brand:str, model: str, color:str)->None:
+    print("Adding a car to database.")
+    flyweight = factory.get_flyweight([brand, model, color])
+    flyweight.operation([plates, owner])
+
+class Context:
+    """ contains the extrinsic state, unique across all original objects. When
+        a context is paired with one of the flyweight objects, it represents the full
+        state of the original object."""
+
+if __name__ == "__main__":
+    factory = FlyweightFactory([["BMW", "M5", "red"],
+                               ["Chevrolet", "Camaro2018", "pink"]])
+    factory.list_flyweight()
+    add_car_todpolice_database(factory, "BMW", "X6", "white")
+    factory.list_flyweights()
+
+
+#+end_src
+
+#+begin_src python
+class Player:
+    def __init__(self, weapon):
+        self.weapon = weapon
+
+class PlayerFacotry:
+    _players = {}
+    def __init__(self, intial_flyweights):
+        for state in initial_flyweights:
+            self._players[state[0]] = Player(state[1])
+    def get_player(cls, state):#type: shared_state
+        player_type = state[0]
+        if not self._players.get(type):
+            self._players[player_type]=Player(player_type)
+        return self._players
+
+if __name__=="__main__":
+    factory = PlayerFacotry([["terrorist": "knife"], ["anti-terrorist"]])
+    factory.get_player(["terrorist", "AK47"])
+    
+#+end_src
+
+
+* proxy pattern
+lets you control access to the original object, allowing you perform sth before or after
+the request gets through to the original object.
+** Applicability
+*** Lazy initialization
+*** access control (protection proxy).
+*** 
+ #+begin_src python
+class Subject(ABC):
+    @abstractmethod
+    def request(self):
+        pass
+class RealSubject(Subject):
+    print("real subject")
+    def request(self):
+    
+class Proxy(Subject):
+    def request(self):
+        if self.check_access():
+            self._real_subject.request()
+            self.log_access()
+    def check_access(self):
+        pass
+    def log_access(self):
+        pass
+ #+end_src
+* Behavior pattern
+** Chain of responsibility
+*** let you pass requests along a chain of handlers. Upon receiving a request,
+    each handler decides either to process the request or to pass it to the next handler in the chain.
+*** applicability
+**** when your program is expected to process different kinds of requests in various ways,
+     but the exact types of requests and their sequences are unknown beforehand.
+**** 
+#+begin_src python
+from abc import ABC, abstractmethod
+class Handler(ABC):
+    """ declare a method for building the chain of handlers, also declare a method for executing the request"""
+    @abstractmethod
+    def set_next(self, handler:Handler): # for building the chain
+        pass
+    @abstractmethod
+    def handle(self, request): # for executing the requests
+        pass
+
+class AbstractHandler(Handler):
+    """ implementing the default chaining behavior"""
+    _next_handler = None
+    def set_next(self, handler:Handler)->Handler:
+        # returning a hanlder here enable us use it like: monkey.set_next(squirrel).set_next(dog)
+        self._next_handler = handler
+        return handler
+    def handle(self, request):
+        if self._next_handler:
+            return self._next_handler.handle(request)
+class MonkeyHandler(AbstractHandler):
+    """ concrete handler either handle a request or pass it to the next handler in the chian"""
+    def handle(self, request):
+        if request == "Banana":
+            return f"Monkey: I'll handler {request}"
+        else:
+            return super().handle(request)
+
+class SquirrelHandler(AbstractHandler):
+    """ concrete handler either handle a request or pass it to the next handler in the chian"""
+    def handle(self, request):
+        if request == "Nut":
+            return f"Monkey: I'll handler {request}"
+        else:
+            return super().handle(request)
+
+class DogHandler(AbstractHandler):
+    """ concrete handler either handle a request or pass it to the next handler in the chian"""
+    def handle(self, request):
+        if request == "Bone":
+            return f"Monkey: I'll handler {request}"
+        else:
+            return super().handle(request)
+def client_code(handler):
+    for food in ["Nut", "Banana", "Bone"]:
+        result = handler.handle(food)
+if __name__ == "__main__":
+    monkey = MonkeyHandler()
+    squirrel = SquirrelHandler()
+    dog = DogHandler()
+
+    monkey.set_next(squirrel).set_next(dog)
+    client_code(monkey)
+#+end_src
+** Command pattern
+   turns a request or simple operations into a stand-alone object that contains all information about the request.
+*** applicability
+#+begin_src python
+class Command(ABC):
+    """ declare a method for executing a command"""
+    @abstractmethod
+    def execute(self):
+        pass
+class SimpleCommand(Command):
+    """ some commands can implement simple oeprations on their own"""
+    def __init__(self, payload:str):
+        self._payload = payload
+    def execute(self):
+        return "execute command"
+class ComplexCommand(Command):
+    def __init__(self, receiver:Receiver, a:str, b:str):
+        self._receiver = receiver
+        self._a = a
+        self._b = b
+    def execute(self):
+        self._receiver.do_sth(self._a)
+        self._receiver.do_sth_else(self._b)
+
+class Receiver:
+    def do_sth(self, a:str):
+        print(f"Receiver working on {a}")
+    def do_sth_else(self, b:str):
+        print(f"Receiver: working on {b}")
+
+class Invoker:
+    """ it is associated with one or several commands. It send request to the command"""
+    _on_start = None
+    _on_finish = None
+    def set_on_start(self, command:Command):
+        self._on_start = command
+    def set_on_finish(self, command:Command):
+        self._on_finish = command
+    def do_sth_important(self):
+        """ the Invoker does not depend on concrete command or receiver classes. The invoker passes
+            a request to a receiver indirectly, by executing a command"""
+        if isinstance(self._on_start, Command):
+            self._on_start.execute()
+        if isinstance(self._on_finish, Command):
+            self._on_finish.execute()
+
+if __name__ == "__main__":
+    invoker = Invoker()
+    invoker.set_on_start(SimpleCommand("Say hi."))
+    receiver = Receiver()
+    invoker.set_on_finish(ComplexCommand(receiver, "Send email", "save report"))
+    invoker.do_sth_important()
+#+end_src
+** Iterator pattern
+*** lets you traverse elements of a collection without exposing its underlying representation
+*** applicability
+**** if you want to hide complex data from clients (either for convenience or security)
+**** if you want to reduce duplication of the traversal
+**** if you want to traverse different data
+#+begin_src python
+from collections.abc import Iterable, Iterator
+class AlphabetcalOrderIterator(Iterator):
+    """concrete Iterators implement various traversal algorithms. Store current traversal position
+       at all time """
+    _position:int = None # current traversal position
+    _reverse: bool = False # traversal direction
+    def __init__(self, collection:WordsCollection, reverse:bool=False):
+        self._collection = collection
+        self._reverse = reverse
+        self._position = -1 if reverse else 0
+    def __next__(self):
+        """ return the next item in the sequence. On reaching the end, and in subsequent calls,
+            it must raise StopIteration."""
+        try:
+            value = self._collection[self._position]
+            self._position += -1 if self._reverse else 1
+        except IndexError:
+            raise StopIteration()
+        return value
+class WordsCollection(Iterable):
+     """concrete collection provide one or several methods for retrieving fresh instances,  compatible with 
+        the collection class"""
+     def __init__(self, collection:List[any]=[]):
+         self._collection = collection
+     def __iter__(self)->AlphabetcalOrderIterator:
+         return AlphabetcalOrderIterator(self._collection)
+     def get_reverse_iterator(self):
+         return AlphabetcalOrderIterator(self._collection, True)
+     def add_item(self, item:any):
+         self._collection.append(item)
+
+if __name__ == "__main__":
+    collection = WordsCollection()
+    collection.add_item("First")
+    collection.add_item("Second")
+    collection.add_item("Third")
+
+    print("\n".join(collection))
+    print("\n".join(collection.get_reverse_iterator()), end="")
+    
+#+end_src
+** Mediator
+   lets you reduce chaotic dependencies between objects. The pattern restricts direct communication
+   between the objects and forces them to collaborate only via a mediator object.
+*** applicability
+**** use it when it's hard to change some of the classes because they are tightly coupled a bunch of other classes.
+**** when you can't reuse a component because it's too dependent on other components
+**** when you find yourself creating tons of components subclasses to reuse some basic behavior in various context.
+#+begin_src python
+class Mediator(ABC):
+    """ declares a method used by components to notify the mediator about various events. The madiator may react to these
+        events and pass the execution to other components."""
+    def notify(self, sender:ojbect, event:str):
+        pass
+class ConcreteMediator(Mediator):
+    def __init__(self, component1:Component1, component2:Component2):
+        self._component1 = component1
+        self._component1.mediator = self
+        self._component2 = component2
+        self._component2.mediator = self
+    def notify(self, sender:object, event:str):
+        if event =="A":
+            self._component2.do_c()
+        elif event == "D":
+            self._component1.do_b()
+            self._component2.do_c()
+class BaseComponent:
+    """provides the basic functionality of storing a mediator's instance inside component objects."""
+    def __init__(self, mediator:Mediator = None):
+        self._mediator = mediator
+    @property
+    def mediator(self):
+        return self._mediator
+    @mediator.setter
+    def mediator(self, mediator:Mediator):
+        self._mediator = mediator
+""" concrete components implement various functionality, they don't depend onother components"""
+class Component1(BaseComponent):
+    def do_a(self):
+        self.mediator.notify(self, "A")
+    def do_b(self):
+        self.mediator.notify(self, "B")
+class Component2(BaseComponent):
+    def do_c(self):
+        self.mediator.notify(self, "C")
+    def do_d(self):
+        self.mediator.notify(self, "D")
+if __name__ == "__main__":
+    c1 = Component1()
+    c2 = Component2()
+    mediator = ConcreteMediator(c1, c2)
+    c1.do_a()
+    c2.do_d()
+#+end_src
+** Memento
+*** lets you save and restore the previous state of an object without revealing the details of its implementation
+*** Sol: using serialization.
+#+begin_src python
+class Originator:
+    """ it holds some important state that may change over time. It defines a method for saving teh state
+        inside a mememto and another method for restoring teh state from it"""
+    _state = None
+    def __init__(self, state):
+        self._state = state
+    def do_sth(self):
+        """ the originator's business logic may affect its internal state."""
+        self._state = self._generate_random_state(30)
+    def _generate_random_state(self, length:int=10):
+        return "".join(sample(ascii_letters.length))
+    def save(self):
+        return ConcreteMememto(self._state)
+    def restore(self, mememto:Mememto):
+        self._state = mememto.get_state()
+
+class Mememto(ABC):
+    """it provides a way to retrieve the mememto's metadata, but it does not expose the Originator's state"""
+    @abstractmethod
+    def get_name(self):
+        pass
+    @abstractmethod
+    def get_date(self):
+        pass
+class ConcreteMememto(Mememto):
+    def __init__(self, state):
+        self._state = state
+        self._date = str(datetime.now())[:19]
+    def get_name(self):
+        """The Originator use this method when restoring its state"""
+        return f"{self._date}/({self._state[0:9]})"
+    def get_state(self):
+        return self._date
+class Caretaker:
+    """doesn't depend on the Concrete Mememto class. It doesn't have access to the original's state, stored inside teh mememto.
+       it works with all mememtos via teh base Mememto interface"""
+    def __init__(self, originator:Originator):
+        self._mememtos = []
+        self._originator = originator
+    def backup(self):
+        self._mememtos.append(self._orignator.save())
+    def undo(self):
+        if not len(self._mememtos):
+            return
+        mememto = self._mememtos.pop()
+        try:
+            self._originator.restore(mememto)
+        except Exception:
+            self.undo()
+    def show_history(self):
+        for mememto in self._mememtos:
+            print(mememto.get_name())
+if __name__ == "__main__":
+    originator = Originator("super")
+    caretaker = Caretaker(originator)
+    caretaker.backup()
+    originator.do_sth()
+    caretaker.undo()
+#+end_src
+** Observer
+   lets you define a subscription mechanism to notify multiple objects about any events that happen to the object they are observing
+*** applicability
+**** when changes to the state of one object may require changing other objects, and the actual set of objects is unknown beforehand or changes dynamically
+**** When some objects in your app must observe others, but only for a limited time or in specific cases
+     
+** State
+** Strategy
+** Template
+** Visitor
+** Interpreter
+*** roles
+**** AbstractExpression
+**** TerminalExpression: extended from AbstractExpression
+**** NonTerminalExpression: extended from AbstractExpression
+**** Context:global vars

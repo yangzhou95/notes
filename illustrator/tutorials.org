@@ -1,0 +1,82 @@
+* Illustrator tutorial
+
+** part 1.
+   
+*** Reset toolbars
+
+**** upper right corner: reset to essencial classic.
+   
+**** lower right (...): reset
+
+*** color
+
+**** RGB: for vis
+
+**** CMYK: for printing
+
+*** Text
+
+**** hallow point 
+
+**** solid point
+     
+*** selection
+
+**** shortcut: v
+
+*** rectangle tool: shortcut: m
+
+**** path
+
+**** stroke
+
+**** fill
+
+*** line: shortcut: \
+
+*** artboard: shift+o
+
+**** export->use artboard, can export all figures on slected artboards (more than one artboard)
+
+**** cmd+0: fit artboard to screen
+
+**** cmd+option 0: show all artboards
+
+*** export tiff:
+    
+**** select LZW compression
+
+*** hand tool: H or pressiong Space key
+
+    
+*** copy shape
+
+**** select target obj+option+dragging
+
+**** ctl+c, ctl+v
+
+**** copy and paste with the same distance: copy one first then Ctrl+d to repeat previous action
+
+*** eyedropper tool: shortcut: i
+
+**** select target->select eyedropper-> target obj to copy style
+
+**** copy fill color only: when selecting the obj to copy, pressing the shift
+
+***  eraser tool: shift + E
+
+**** scissor tool: C
+     
+**** knife:
+
+***** use with option: straight line
+
+***** shift+option vertical line
+
+*** selection multiple: pressing shift all the time
+
+*** switch between stroke and fill
+
+*** insert bullet item: Opt+8
+
+***  

@@ -1,0 +1,58 @@
+* helm-ag
+- C-c p s: search
+- C-c C-e: editing
+- C-c C-c: finish editing
+- C-c C-k: abort
+
+
+* flycheck
+- flycheck-list-error:
+
+* snippets
+- create your snippets: (add-to-list 'path~aa 'xx~aa), M-x aya-create: create a snippets
+- insert: M-x aya-expand, use tab move to the next optional
+
+
+
+
+
+* Day 7
+
+** evil vs vim
+
+- evil emulates vim
+- g g: goto begining
+- G: goto the end
+
+** evil states
+- evil state = vim mode
+- evil normal state =vim normal-state
+- evil insert state
+- evil visual state
+- evil motion state
+- evil emacs state
+- evil operator state
+
+- viw: select word on the right
+
+
+** evil surround
+*** add surrounding (must select text first)
+**** in visual-stte
+- S<textobject> or gS<textobject> 'test'
+**** in normal-state
+- ys<textobject> or yS<textobject>
+*** change surrounding
+- cs<old-textobject><new-textobject>
+*** delete surrounding
+- ds<textobject>
+*** add new pairs
+
+
+** comment and uncomment
+- ",/" for comment and uncomment
+
+
+https://josephrjohnson.georgetown.domains/emacs/settings.html
+
+https://iqss.github.io/IQSS.emacs/init.html

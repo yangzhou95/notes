@@ -1,0 +1,104 @@
+* Introducing the structure of pytorch 
+** Key modules
+*** torch.nn: for designing network design
+*** torch.Tensor
+*** torch.autograd
+*** torch.optim
+*** torch.utils:
+*** torch.cuda: provide support for cuda tensor
+*** torch.backends: controls the behavior of various backends that PyTorch supports.
+*** torch.distributed: for distributed training
+*** torch.distributions: contains parameterizable probability distributions and sampling functions.
+*** torch.fft: This method computes the complex-to-complex discrete Fourier transform
+*** torch.futures: is a Prototype feature and subject to change
+*** torch.hub: pre-trained model repository designed to facilitate research reproducibility
+*** torch.jit: a way to create serializable and optimizable models from PyTorch code (independent from language)
+*** torch.linalg: linear algebra operations
+*** torch.onnx
+*** torch.random:
+*** torch.sparse: sparse matrix processing
+*** torch.Storage:is a contiguous, one-dimensional array of a single data type.
+*** torch.__config__: Application config for torch.
+**
+
+
+* learn org-mode
+
+** shortcuts
+快捷键	命令	说明
+S-TAB	org-shifttab	循环切换整个文档的大纲状态（三种状态：折叠，打开下一级，打开全部）
+TAB	org-cycle	循环切换光标所在大纲的状态
+1.2.2 在大纲之间移动
+
+
+快捷键	命令	说明
+C-c C-n/p	 	下/上一标题
+C-c C-f/b	 	下/上一标题（仅限同级标题）
+C-c C-u	 	跳到上一级标题
+C-c C-j	 	切换到大纲浏览状态(to quit, use C-g)
+1.2.3 基于大纲的编辑
+ 
+** 
+
+** TODO 
+
+** 
+
+*** TODO 
+*** TODO
+
+
+
+  快捷键	                 命令	说明
+  M-RET	 	        插入一个同级标题
+  M-S-RET	 	插入一个同级TODO 标题
+  M-LEFT/RIGHT	 	将当前标题升/降级
+  M-S-LEFT/RIGHT        将子树升/降级
+  M-S-UP/DOWN	 	将子树上/下移
+  C-c *	        	将本行设为标题/正文 (toggle between header and text)
+  C-c C-w	 	将子树或区域移动到另一标题处（跨缓冲区）
+  C-x n s/w	 	只显示当前子树/返回
+  C-c C-x b	 	在新缓冲区显示当前分支（类似C-x n s)
+  C-c /	        	只列出包含搜索结果的大纲，并高亮，支持多种搜索方式
+  C-c C-c	 	取消高亮
+  更多的快捷键可以通过C-c C-x C-h查看。
+
+**** basic operations
+  1. 创建一个 tensor 基于已经存在的 tensor。
+  x = x.new_ones(5, 3, dtype=torch.double) # new_* methods take in sizes
+
+
+
+* pytorch ops
+(1).any operations ending with "_" will change the original tensor. e.g., x.copy_(y), x.add_(y), etc.
+(2).change the shape of a tensor, you can use torch.view.
+x = torch.randn(4, 4)
+y = x.view(16)
+z = x.view(-1, 8) # the size -1 is inferred from other dimensions print(x.size(), y.size(), z.size())
+(3).if a tensor has one element, the value can be obtained by its item() method. e.g., x.item(). If it has more than one element, use tensor_a.data 
+(4).If the .requires_grad attribute of a tensor is set to True, after calling the .backward() to compute gradients, the gradients of a tensor will be accumulated in .grad attribute.
+(4).stop tracking the computation history:
+    (a).tensor_a.detach()
+    (b).with torch.no_grad():
+(5).tensors are connected by Functions that are recorded in the .grad_fn attribute. If a tensor is user-created, the .grad_fn is none.
+[[/Users/zhou/Documents/github/notes/pytorch/backward.jpg][illustrate how backward works]](https://zhuanlan.zhihu.com/p/83172023, how to insert pictures: C-c C-l, input the path of a picture)
+(6).a.requires_grad_(True): change the requires_grad attribute.
+(7).net.parameters(): return the trainable parameters. nn.Parameter - A kind of Tensor, that is automatically registered as a parameter when assigned as an attribute to a Module.
+(8).numpy.transpose(2,0,1): change the first and the third axis
+(9).t.shape ([2,3,4]), t.unsqueeze(0):add a dim at location 0-> [1,2,3,4], t.squeeze(): remove all dims that have a length of 1 ((A×1×B×1×C×1×D)->(A×B×C×D)). When dim is provided, 
+squeeze on the dim that is specified. e.g., (A×1×B), squeeze(input, 0) do nothing，works when squeeze(input, 1)-> (A×B). if none is qualified, do nothing. it's similar to t.permute([index arragement])
+x=tensor([1., 2., 3., 4.]), torch.unsqueeze(x, 0)  # tensor(\[\[ 1,2,3,4]])
+
+
+* 
+
+
+
+
+* Dec 29 
+
+
+* nn
+- .to(): move model to devide
+- 
+
