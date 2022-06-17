@@ -195,3 +195,20 @@ if __name__ == '__main__':
     time1 = time.time()
     time = time1 - time0
 ########################################## 3 ################################################
+
+########################################## 4 ################################################
+
+import functools
+from functools import wraps
+from time import time
+
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        print(f'func: {f.__name__} args:{args, kw} took: {te-ts} sec')
+        return result
+    return wrap
+########################################## 4 ################################################
